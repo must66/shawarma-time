@@ -265,7 +265,12 @@ async function refreshDataAndRender() {
 }
 
 async function setupRealtime() {
-  unsubscribeRealtime = await subscribeToPublicUpdates(() => {
+  unsubscribeRealtime = await subscribeToPublicUpdates((updatedData) => {
+    if (updatedData) {
+      data = updatedData;
+      render();
+      return;
+    }
     refreshDataAndRender();
   });
 }

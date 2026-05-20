@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="nl" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Admin | Shawarma Time</title>
+    <link rel="stylesheet" href="../src/styles.css?v=firebase-admin-20260521" />
+    <link rel="stylesheet" href="../src/admin.css?v=firebase-admin-20260521" />
+  </head>
+  <body class="admin-body">
+    <main class="admin-shell">
+      <section class="admin-auth" id="loginView">
+        <div class="admin-auth-top">
+          <a class="brand" href="../index.html">
+            <span class="brand-mark">ST</span>
+            <span><strong>Shawarma Time</strong><small>Admin</small></span>
+          </a>
+          <div class="admin-lang-switcher">
+            <button type="button" data-admin-lang="ar">AR</button>
+            <button type="button" data-admin-lang="nl" class="active">NL</button>
+            <button type="button" data-admin-lang="de">DE</button>
+          </div>
+        </div>
+        <form class="admin-card" id="loginForm">
+          <h1>Secure admin login</h1>
+          <label><span>Username</span><input name="username" type="text" autocomplete="username" required /></label>
+          <label><span>Password</span><input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="btn primary" type="submit">Login</button>
+          <p class="form-note" id="loginNote"></p>
+        </form>
+      </section>
+
+      <section class="dashboard hidden" id="dashboardView">
+        <aside class="admin-sidebar">
+          <a class="brand" href="../index.html">
+            <span class="brand-mark">ST</span>
+            <span><strong>Shawarma Time</strong><small>Firebase CMS</small></span>
+          </a>
+          <nav>
+            <button data-panel="homePanel" class="active"><span>H</span><b>Home</b></button>
+            <button data-panel="menuPanel"><span>M</span><b>Menu</b></button>
+            <button data-panel="offersPanel"><span>%</span><b>Offers</b></button>
+            <button data-panel="bannersPanel"><span>B</span><b>Banners</b></button>
+            <button data-panel="galleryPanel"><span>G</span><b>Gallery</b></button>
+          </nav>
+          <button class="btn ghost" id="logoutBtn" type="button">Logout</button>
+        </aside>
+
+        <div class="admin-content">
+          <header class="admin-topbar">
+            <div>
+              <p class="eyebrow">Protected dashboard</p>
+              <h1>Shawarma Time CMS</h1>
+              <p class="admin-role" id="adminRole"></p>
+            </div>
+            <div class="admin-actions">
+              <span id="saveStatus"></span>
+              <a class="btn ghost" href="../index.html">View website</a>
+            </div>
+          </header>
+
+          <section id="homePanel" class="admin-panel active">
+            <div class="panel-head"><h2>Homepage banners</h2><button class="btn primary" id="saveHomeBtn" type="button">Save home</button></div>
+            <form class="settings-grid" id="homeForm"></form>
+          </section>
+
+          <section id="menuPanel" class="admin-panel">
+            <div class="panel-head"><h2>Menu items</h2><button class="btn primary" data-add="menu" type="button">Add item</button></div>
+            <div class="editor-list" id="menuEditor"></div>
+          </section>
+
+          <section id="offersPanel" class="admin-panel">
+            <div class="panel-head"><h2>Offers</h2><button class="btn primary" data-add="offers" type="button">Add offer</button></div>
+            <div class="editor-list" id="offersEditor"></div>
+          </section>
+
+          <section id="bannersPanel" class="admin-panel">
+            <div class="panel-head"><h2>Banners</h2><button class="btn primary" data-add="banners" type="button">Add banner</button></div>
+            <div class="editor-list" id="bannersEditor"></div>
+          </section>
+
+          <section id="galleryPanel" class="admin-panel">
+            <div class="panel-head"><h2>Gallery</h2><button class="btn primary" data-add="gallery" type="button">Add photo</button></div>
+            <div class="editor-list" id="galleryEditor"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
+    <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
+    <script type="module" src="../src/firebaseAdmin.js?v=firebase-admin-20260521"></script>
+  </body>
+</html>

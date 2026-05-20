@@ -1,7 +1,9 @@
 import { categoryOrder, defaultSiteData, localized } from "./data.js";
+import { isFirebaseConfigured, loadFirebaseSiteData, subscribeFirebaseSiteData } from "./firebaseService.js";
 import { getSupabase } from "./supabaseService.js";
 
 export async function fetchPublicSiteData() {
+  if (isFirebaseConfigured()) return loadFirebaseSiteData();
   const supabase = await getSupabase();
   if (!supabase) return structuredClone(defaultSiteData);
 
@@ -38,6 +40,9 @@ export async function fetchPublicSiteData() {
 }
 
 export async function subscribeToPublicUpdates(onChange) {
+  if (isFirebaseConfigured()) {
+    return subscribeFirebaseSiteData((data) => onChange(data));
+  }
   const supabase = await getSupabase();
   if (!supabase) return () => {};
   const tables = [
