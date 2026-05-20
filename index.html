@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="nl" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Shawarma Time in Venlo: Syrian and Lebanese luxury shawarma showcase with halal grill, broasted chicken, kapsalon, falafel, offers and opening hours." />
+    <meta name="keywords" content="Shawarma Venlo, Arabisch restaurant Venlo, Halal food Venlo, Shawarma Time, kapsalon Venlo, broasted chicken Venlo" />
+    <meta name="theme-color" content="#0b0504" />
+    <meta property="og:title" content="Shawarma Time" />
+    <meta property="og:description" content="Syrian and Lebanese luxury shawarma, grill and halal food showcase in Venlo." />
+    <meta property="og:type" content="restaurant.restaurant" />
+    <meta property="og:locale" content="nl_NL" />
+    <title>Shawarma Time</title>
+    <link rel="canonical" href="https://shawarma-time.netlify.app/" />
+    <link rel="stylesheet" href="/src/styles.css?v=20260520-syrian-lebanese-luxury-v3" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Restaurant",
+        "name": "Shawarma Time",
+        "servesCuisine": ["Arabic", "Shawarma", "Halal", "Grill"],
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Puteanusstraat",
+          "postalCode": "5911 EV",
+          "addressLocality": "Venlo",
+          "addressCountry": "NL"
+        },
+        "telephone": "+31638081382",
+        "url": "https://shawarma-time.netlify.app/",
+        "priceRange": "EUR"
+      }
+    </script>
+  </head>
+  <body>
+    <div class="loader" aria-hidden="true"><span>ST</span></div>
+    <header class="site-header">
+      <a class="brand" href="#home" aria-label="Shawarma Time">
+        <span class="brand-mark">ST</span>
+        <span>
+          <strong>Shawarma Time</strong>
+          <small>Venlo</small>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#home" data-i18n="nav.home">Home</a>
+        <a href="#menu" data-i18n="nav.menu">Menu</a>
+        <a href="#offers" data-i18n="nav.offers">Offers</a>
+        <a href="#gallery" data-i18n="nav.gallery">Gallery</a>
+        <a href="#about" data-i18n="nav.about">Over ons</a>
+        <a href="#hours" data-i18n="nav.hours">Openingstijden</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
+      </nav>
+      <div class="language-switcher" aria-label="Language switcher">
+        <button type="button" data-lang="ar">AR</button>
+        <button type="button" data-lang="nl" class="active">NL</button>
+        <button type="button" data-lang="de">DE</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="site-status" id="siteStatus" role="status" aria-live="polite"></div>
+
+      <section id="home" class="hero reveal">
+        <div class="hero-bg" id="heroBg"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="hero-logo" aria-hidden="true">
+            <span class="brand-mark large" id="heroLogoMark">ST</span>
+            <span>Shawarma Time</span>
+          </div>
+          <p class="eyebrow" id="heroEyebrow"></p>
+          <h1 id="heroTitle"></h1>
+          <p class="hero-slogan" id="heroSlogan"></p>
+          <p class="hero-intro" id="heroIntro"></p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#menu" data-i18n="section.viewMenu">View Menu</a>
+            <a class="btn glow" id="heroWhatsapp" target="_blank" rel="noopener">WhatsApp</a>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <span>Syrian Style</span>
+          <span>Lebanese Grill</span>
+          <span>Venlo</span>
+        </div>
+      </section>
+
+      <section class="banner-strip reveal" id="banners" aria-label="Banner advertisements"></section>
+
+      <section id="menu" class="section reveal">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-section-text="menuEyebrow">QR-ready menu</p>
+            <h2 data-section-text="menuTitle">Premium food showcase</h2>
+          </div>
+          <div class="qr-chip">QR MENU</div>
+        </div>
+        <div class="category-tabs" id="categoryTabs" aria-label="Food categories"></div>
+        <div class="menu-grid" id="menuGrid"></div>
+      </section>
+
+      <section id="offers" class="section offers-band reveal">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-section-text="offersEyebrow">Dagelijks vers voordeel</p>
+            <h2 data-section-text="offersTitle">Offers, deals en banners</h2>
+          </div>
+          <a class="btn ghost" href="#contact" data-i18n="section.whatsapp">WhatsApp</a>
+        </div>
+        <div class="offer-grid" id="offerGrid"></div>
+      </section>
+
+      <section id="gallery" class="section reveal">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-section-text="galleryEyebrow">Instagram stijl</p>
+            <h2 data-section-text="galleryTitle">Gallery</h2>
+          </div>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </section>
+
+      <section id="about" class="section about-section reveal">
+        <div>
+          <p class="eyebrow" data-section-text="aboutEyebrow">Authentiek in Venlo</p>
+          <h2 data-section-text="aboutTitle">Arabic shawarma, grill fire en gastvrijheid</h2>
+        </div>
+        <p id="aboutText"></p>
+      </section>
+
+      <section id="hours" class="section hours-section reveal">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-section-text="hoursEyebrow">Plan je bezoek</p>
+            <h2 data-section-text="hoursTitle">Openingstijden</h2>
+          </div>
+        </div>
+        <div class="hours-card" id="hoursList"></div>
+      </section>
+
+      <section id="reviews" class="section reveal">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-section-text="reviewsEyebrow">Wat gasten zeggen</p>
+            <h2 data-section-text="reviewsTitle">Reviews</h2>
+          </div>
+        </div>
+        <div class="review-grid" id="reviewGrid"></div>
+      </section>
+
+      <section id="socials" class="section social-section reveal">
+        <div>
+          <p class="eyebrow" data-section-text="socialsEyebrow">Volg de smaak</p>
+          <h2 data-section-text="socialsTitle">Social media</h2>
+        </div>
+        <div class="social-grid" id="socialGrid"></div>
+      </section>
+
+      <section id="contact" class="section contact-section reveal">
+        <div class="contact-panel">
+          <p class="eyebrow" data-section-text="contactEyebrow">Route en contact</p>
+          <h2 data-section-text="contactTitle">Contact</h2>
+          <div class="contact-lines">
+            <p><strong data-i18n="section.address">Adres</strong><span id="contactAddress"></span></p>
+            <p><strong data-i18n="section.phone">Telefoon</strong><a id="contactPhone"></a></p>
+          </div>
+          <a class="btn primary" id="whatsappBtn" target="_blank" rel="noopener" data-i18n="section.whatsapp">WhatsApp</a>
+        </div>
+        <iframe
+          class="map"
+          title="Google Maps - Shawarma Time"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps?q=Puteanusstraat%2C%205911%20EV%20Venlo&output=embed">
+        </iframe>
+      </section>
+    </main>
+
+    <dialog class="lightbox" id="lightbox">
+      <button class="lightbox-close" type="button" data-i18n-aria="section.close">×</button>
+      <img id="lightboxImage" alt="" />
+      <p id="lightboxCaption"></p>
+    </dialog>
+
+    <a class="floating-whatsapp" id="floatingWhatsapp" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
+
+    <footer class="site-footer">
+      <strong>Shawarma Time</strong>
+      <span id="footerAddress"></span>
+      <span data-section-text="footer">Showcase website voor Shawarma Time. Geen online bestellen, geen reserveringen.</span>
+    </footer>
+
+    <script type="module" src="/src/app.js?v=20260520-syrian-lebanese-luxury-v3"></script>
+  </body>
+</html>
