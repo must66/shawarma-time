@@ -35,6 +35,8 @@ export const firebaseConfig = {
 
 Firebase config is public by design. Do not put service account keys in this website.
 
+The admin dashboard requires this config in production. It does not use browser storage as the production admin database.
+
 ## Default Admin Login
 
 Admin URL:
@@ -70,3 +72,13 @@ Use the included `firestore.rules` as the base rules. They allow public reads of
 ## Storage Rules
 
 Use the included `storage.rules`. They allow public image reads and restrict uploads to authenticated active admins.
+
+## Deploy Rules
+
+After selecting the existing Firebase project locally, deploy the rules with:
+
+```powershell
+firebase deploy --only firestore:rules,storage
+```
+
+The included `firebase.json` points Firebase CLI to `firestore.rules` and `storage.rules`.

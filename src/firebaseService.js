@@ -1,4 +1,4 @@
-import { defaultSiteData, loadSiteData, saveSiteData } from "./data.js";
+import { defaultSiteData, loadSiteData } from "./data.js";
 import { firebaseConfig, firebaseEnabled } from "./firebaseConfig.js";
 
 const APP_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -14,6 +14,7 @@ const DEFAULT_EMAIL = "admin@shawarma-time.local";
 const DEFAULT_PASSWORD = "Shawarma2026!";
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const CONFIG_ERROR = "Firebase is not configured. Add the existing project config in src/firebaseConfig.js.";
 
 let firebasePromise;
 
@@ -55,11 +56,7 @@ export async function getFirebase() {
 export async function signInAdmin(username, password) {
   const firebase = await getFirebase();
   if (!firebase) {
-    if (String(username).trim().toLowerCase() === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
-      sessionStorage.setItem("shawarma-time-admin-local", "true");
-      return { local: true, username: DEFAULT_USERNAME, role: "owner" };
-    }
-    throw new Error("Firebase is not configured.");
+    throw new Error(CONFIG_ERROR);
   }
 
   const email = usernameToEmail(username);
@@ -74,20 +71,16 @@ export async function signInAdmin(username, password) {
       await ensureInitialContent();
       return credential.user;
     }
-    throw error;
+    throw new Error(authErrorMessage(error));
   }
 }
 
 export async function signOutAdmin() {
-  sessionStorage.removeItem("shawarma-time-admin-local");
   const firebase = await getFirebase();
   if (firebase) await firebase.authMod.signOut(firebase.auth);
 }
 
 export async function getAdminSession() {
-  if (sessionStorage.getItem("shawarma-time-admin-local") === "true") {
-    return { local: true, username: DEFAULT_USERNAME, role: "owner" };
-  }
   const firebase = await getFirebase();
   if (!firebase) return null;
   await firebase.auth.authStateReady?.();
@@ -121,8 +114,7 @@ export async function loadFirebaseSiteData() {
 export async function saveFirebaseSiteData(siteData) {
   const firebase = await getFirebase();
   if (!firebase) {
-    saveSiteData(siteData);
-    return;
+    throw new Error(CONFIG_ERROR);
   }
   await firebase.firestoreMod.setDoc(contentRef(firebase), {
     data: siteData,
@@ -141,7 +133,7 @@ export async function subscribeFirebaseSiteData(callback) {
 export async function uploadFirebaseImage(file, folder = "menu") {
   validateImage(file);
   const firebase = await getFirebase();
-  if (!firebase) return fileToDataUrl(file);
+  if (!firebase) throw new Error(CONFIG_ERROR);
   const safeName = file.name.replace(/[^a-z0-9._-]+/gi, "-").toLowerCase();
   const path = `${folder}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
   const ref = firebase.storageMod.ref(firebase.storage, path);
@@ -189,13 +181,15 @@ function validateImage(file) {
   if (file.size > MAX_IMAGE_SIZE) throw new Error("Image is too large. Maximum size is 5MB.");
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error);
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
-  });
+function authErrorMessage(error) {
+  const messages = {
+    "auth/invalid-credential": "Username or password is incorrect.",
+    "auth/wrong-password": "Username or password is incorrect.",
+    "auth/user-not-found": "Admin user was not found.",
+    "auth/operation-not-allowed": "Enable Email/Password sign-in in Firebase Authentication.",
+    "auth/network-request-failed": "Could not reach Firebase. Check your connection and Firebase project config."
+  };
+  return messages[error?.code] || error?.message || "Login failed.";
 }
 
 function mergeSiteData(base, stored) {

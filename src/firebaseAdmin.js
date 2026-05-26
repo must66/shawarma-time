@@ -349,5 +349,5 @@ function escapeAttr(value) {
 
 getAdminSession().then((session) => {
   if (session) showDashboard(session);
-  else showLogin(isFirebaseConfigured() ? "" : "Firebase config is empty. Local fallback login is enabled.");
+  else showLogin(isFirebaseConfigured() ? "" : "Firebase config is missing. Add the existing Firebase project config before logging in.");
 });
