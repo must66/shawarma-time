@@ -1,4 +1,4 @@
-import { badgeOptions, categoryOrder, defaultSiteData, loadSiteData, localized, saveSiteData, ui } from "./data.js";
+import { badgeOptions, categoryOrder, defaultSiteData, loadSiteData, saveSiteData, ui } from "./data.js";
 import {
   getAdminSession,
   isFirebaseConfigured,
@@ -57,6 +57,8 @@ async function saveContent(message = "Saved") {
     if (!isFirebaseConfigured()) saveSiteData(siteData);
     renderAll();
     note(message);
+  } catch (error) {
+    note(error.message || "Save failed");
   } finally {
     loading(false);
   }
@@ -112,12 +114,25 @@ $("#saveHomeBtn").addEventListener("click", () => {
   saveContent("Homepage saved");
 });
 
+$("#saveContactBtn").addEventListener("click", () => {
+  collectFields($("#contactForm"), siteData.settings);
+  saveContent("Restaurant information saved");
+});
+
+$("#saveHoursBtn").addEventListener("click", () => {
+  collectFields($("#hoursForm"), siteData.settings);
+  saveContent("Opening hours saved");
+});
+
 function renderAll() {
   renderHome();
   renderCollection("menu", "menuEditor", { category: true, badge: true, price: true, desc: true, folder: "menu" });
   renderCollection("offers", "offersEditor", { type: true, price: true, desc: true, folder: "offers" });
   renderCollection("banners", "bannersEditor", { title: true, text: true, folder: "banners" });
   renderCollection("gallery", "galleryEditor", { title: true, type: true, folder: "gallery" });
+  renderContact();
+  renderHours();
+  setupUploads();
 }
 
 function renderHome() {
@@ -126,7 +141,7 @@ function renderHome() {
     ${multiInput(siteData.homepage, "slogan", "Slogan", "textarea")}
     ${multiInput(siteData.homepage, "intro", "Intro", "textarea")}
     ${multiInput(siteData.homepage, "about", "About", "textarea")}
-    <label class="wide upload-label"><span>Hero image</span><small>JPG, PNG, WEBP - max 5MB</small><input data-home-image type="file" accept="${imageAccept}" /></label>
+    ${uploadLabel("Hero image", "data-home-image")}
   `;
   $("[data-home-image]").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
@@ -134,6 +149,31 @@ function renderHome() {
     await uploadToField(file, siteData.homepage, "heroImage", "hero");
     event.target.value = "";
   });
+}
+
+function renderContact() {
+  $("#contactForm").innerHTML = `
+    ${field("phone", "Phone", siteData.settings.phone || "")}
+    ${field("address", "Address", siteData.settings.address || "", "wide")}
+    ${field("whatsappMessage", "WhatsApp message", siteData.settings.whatsappMessage || "", "wide")}
+    ${field("instagram", "Instagram URL", siteData.settings.instagram || "")}
+    ${field("tiktok", "TikTok URL", siteData.settings.tiktok || "")}
+    ${field("facebook", "Facebook URL", siteData.settings.facebook || "")}
+  `;
+}
+
+function renderHours() {
+  const days = ui[adminLang].days || ui.nl.days;
+  $("#hoursForm").innerHTML = `
+    <div class="hours-editor">
+      ${days.map((day, index) => `
+        <label>
+          <span>${day}</span>
+          <input data-field="hours.${index}" value="${escapeAttr(siteData.settings.hours?.[index] || "")}" />
+        </label>
+      `).join("")}
+    </div>
+  `;
 }
 
 function renderCollection(collection, rootId, options) {
@@ -171,7 +211,7 @@ function editorCard(collection, item, options) {
         ${multiInput(item, options.title ? "title" : "name", options.title ? "Title" : "Name")}
         ${options.desc ? multiInput(item, "desc", "Description", "textarea") : ""}
         ${options.text ? multiInput(item, "text", "Banner text", "textarea") : ""}
-        <label class="wide upload-label"><span>Upload image</span><small>JPG, PNG, WEBP - max 5MB</small><input data-image type="file" accept="${imageAccept}" /></label>
+        ${uploadLabel("Upload image", "data-image")}
       </div>
       <div class="editor-actions">
         <button class="btn primary" type="button" data-save>Save</button>
@@ -202,8 +242,12 @@ function multiInput(item, fieldName, label, type = "input") {
   }).join("");
 }
 
-function field(fieldName, label, value) {
-  return `<label><span>${label}</span><input data-field="${fieldName}" value="${escapeAttr(value)}" /></label>`;
+function field(fieldName, label, value, className = "") {
+  return `<label class="${className}"><span>${label}</span><input data-field="${fieldName}" value="${escapeAttr(value)}" /></label>`;
+}
+
+function uploadLabel(label, attribute) {
+  return `<label class="wide upload-label"><span>${label}</span><small>Drop image here or tap to select. JPG, PNG, WEBP - max 5MB</small><input ${attribute} type="file" accept="${imageAccept}" /></label>`;
 }
 
 function categorySelect(item) {
@@ -228,6 +272,39 @@ async function uploadToField(file, item, fieldName, folder) {
   }
 }
 
+function setupUploads() {
+  document.querySelectorAll(".upload-label").forEach((label) => {
+    if (label.dataset.dropReady) return;
+    label.dataset.dropReady = "true";
+    ["dragenter", "dragover"].forEach((eventName) => {
+      label.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        label.classList.add("drag-over");
+      });
+    });
+    ["dragleave", "drop"].forEach((eventName) => {
+      label.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        label.classList.remove("drag-over");
+      });
+    });
+    label.addEventListener("drop", async (event) => {
+      const file = event.dataTransfer?.files?.[0];
+      const input = label.querySelector("input[type='file']");
+      if (!file || !input) return;
+      if (input.hasAttribute("data-home-image")) {
+        await uploadToField(file, siteData.homepage, "heroImage", "hero");
+        return;
+      }
+      const card = input.closest(".editor-card");
+      if (!card) return;
+      const collection = card.closest(".editor-list")?.id?.replace("Editor", "");
+      const item = siteData[collection]?.find((entry) => entry.id === card.dataset.id);
+      if (item) await uploadToField(file, item, "image", collection || "uploads");
+    });
+  });
+}
+
 function blankItem(collection) {
   const id = `${collection}-${Date.now()}`;
   const baseImage = siteData.homepage.heroImage;
@@ -245,7 +322,9 @@ function setNested(target, path, value) {
   let ref = target;
   while (parts.length > 1) {
     const key = parts.shift();
-    ref[key] ||= {};
+    const nextKey = parts[0];
+    if (Array.isArray(ref[key]) || /^\d+$/.test(nextKey)) ref[key] ||= [];
+    else ref[key] ||= {};
     ref = ref[key];
   }
   ref[parts[0]] = value;

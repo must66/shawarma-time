@@ -2,6 +2,8 @@
 
 The website is ready for GitHub Pages with a real `/admin/` route.
 
+The admin dashboard saves homepage content, banners, menu items, offers, gallery images, restaurant contact details and opening hours into Firestore. Uploaded JPG, PNG and WEBP images are stored in Firebase Storage and the public website subscribes to Firestore updates for live refreshes.
+
 ## Firebase Services
 
 Enable these Firebase products:

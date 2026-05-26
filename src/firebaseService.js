@@ -113,7 +113,6 @@ export async function loadFirebaseSiteData() {
   const ref = contentRef(firebase);
   const snap = await firebase.firestoreMod.getDoc(ref);
   if (!snap.exists()) {
-    await saveFirebaseSiteData(defaultSiteData);
     return structuredClone(defaultSiteData);
   }
   return mergeSiteData(defaultSiteData, snap.data().data || {});

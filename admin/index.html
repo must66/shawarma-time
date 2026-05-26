@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Admin | Shawarma Time</title>
-    <link rel="stylesheet" href="../src/styles.css?v=firebase-admin-20260521" />
-    <link rel="stylesheet" href="../src/admin.css?v=firebase-admin-20260521" />
+    <link rel="stylesheet" href="../src/styles.css?v=firebase-admin-20260526" />
+    <link rel="stylesheet" href="../src/admin.css?v=firebase-admin-20260526" />
   </head>
   <body class="admin-body">
     <main class="admin-shell">
@@ -43,6 +43,8 @@
             <button data-panel="offersPanel"><span>%</span><b>Offers</b></button>
             <button data-panel="bannersPanel"><span>B</span><b>Banners</b></button>
             <button data-panel="galleryPanel"><span>G</span><b>Gallery</b></button>
+            <button data-panel="contactPanel"><span>C</span><b>Contact</b></button>
+            <button data-panel="hoursPanel"><span>T</span><b>Hours</b></button>
           </nav>
           <button class="btn ghost" id="logoutBtn" type="button">Logout</button>
         </aside>
@@ -84,11 +86,21 @@
             <div class="panel-head"><h2>Gallery</h2><button class="btn primary" data-add="gallery" type="button">Add photo</button></div>
             <div class="editor-list" id="galleryEditor"></div>
           </section>
+
+          <section id="contactPanel" class="admin-panel">
+            <div class="panel-head"><h2>Restaurant information</h2><button class="btn primary" id="saveContactBtn" type="button">Save contact</button></div>
+            <form class="settings-grid" id="contactForm"></form>
+          </section>
+
+          <section id="hoursPanel" class="admin-panel">
+            <div class="panel-head"><h2>Opening hours</h2><button class="btn primary" id="saveHoursBtn" type="button">Save hours</button></div>
+            <form class="settings-grid" id="hoursForm"></form>
+          </section>
         </div>
       </section>
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=firebase-admin-20260521"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=firebase-admin-20260526"></script>
   </body>
 </html>
