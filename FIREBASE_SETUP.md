@@ -24,12 +24,12 @@ Paste your Firebase web app config:
 
 ```js
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "configured in src/firebaseConfig.js",
+  authDomain: "shawarma-time-ca124.firebaseapp.com",
+  projectId: "shawarma-time-ca124",
+  storageBucket: "shawarma-time-ca124.firebasestorage.app",
+  messagingSenderId: "610999682916",
+  appId: "1:610999682916:web:95e48d19aeb26fd6761c71"
 };
 ```
 
@@ -82,3 +82,5 @@ firebase deploy --only firestore:rules,storage
 ```
 
 The included `firebase.json` points Firebase CLI to `firestore.rules` and `storage.rules`.
+
+If login shows `Enable Email/Password sign-in in Firebase Authentication`, open Firebase Console > Authentication > Sign-in method and enable Email/Password.
