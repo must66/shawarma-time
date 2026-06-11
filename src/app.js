@@ -353,13 +353,13 @@ async function submitCart(event) {
       },
       paymentMethod
     };
-    const orderId = await createFirebaseOrder(orderPayload);
-    notifyOrderCreated(orderId, orderPayload);
     if (paymentMethod === "stripe") {
       setStatus(t("section.stripeRedirect"), false);
-      await redirectToStripeCheckout(orderId, orderPayload);
+      await redirectToStripeCheckout(orderPayload);
       return;
     }
+    const orderId = await createFirebaseOrder(orderPayload);
+    notifyOrderCreated(orderId, orderPayload);
     cart = [];
     cartForm.reset();
     renderCart();
@@ -394,21 +394,21 @@ async function notifyOrderCreated(orderId, orderPayload) {
   }
 }
 
-async function redirectToStripeCheckout(orderId, orderPayload) {
+async function redirectToStripeCheckout(orderPayload) {
   const endpoint = paymentConfig.stripeCheckoutEndpoint;
   if (!endpoint) throw new Error(t("section.stripeUnavailable"));
+  await assertStripeReady();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      orderId,
       order: {
         ...orderPayload,
         subtotal: cartTotal(),
         currency: "EUR"
       },
-      successUrl: `${window.location.origin}${window.location.pathname}?payment=success&orderId=${encodeURIComponent(orderId)}`,
-      cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel&orderId=${encodeURIComponent(orderId)}`
+      successUrl: new URL("payment-success.html", window.location.href).toString(),
+      cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel`
     })
   });
   const payload = await response.json().catch(() => ({}));
@@ -416,6 +416,25 @@ async function redirectToStripeCheckout(orderId, orderPayload) {
     throw new Error(payload.error || t("section.stripeUnavailable"));
   }
   window.location.href = payload.url;
+}
+
+async function assertStripeReady() {
+  const endpoint = paymentConfig.stripeConfigStatusEndpoint;
+  if (!endpoint) return;
+  let response;
+  try {
+    response = await fetch(endpoint, { headers: { accept: "application/json" } });
+  } catch {
+    throw new Error(t("section.stripeMissingBackend"));
+  }
+  if (!response.ok) throw new Error(t("section.stripeMissingBackend"));
+  const status = await response.json().catch(() => null);
+  const missing = [];
+  if (!status?.stripeSecretKey) missing.push("STRIPE_SECRET_KEY");
+  if (!status?.stripePublishableKey) missing.push("STRIPE_PUBLISHABLE_KEY");
+  if (!status?.stripeWebhookSecret) missing.push("STRIPE_WEBHOOK_SECRET");
+  if (!status?.firebaseServiceAccount) missing.push("FIREBASE_SERVICE_ACCOUNT");
+  if (missing.length) throw new Error(`${t("section.stripeMissingConfig")} Missing: ${missing.join(", ")}`);
 }
 
 function setupReveal() {
