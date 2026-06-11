@@ -12,9 +12,183 @@ import {
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de"];
 const imageAccept = ".jpg,.jpeg,.png,.webp";
+const adminLangKey = "shawarma-time-admin-lang";
 
 let siteData = loadSiteData();
-let adminLang = "nl";
+let adminLang = localStorage.getItem(adminLangKey) || "nl";
+if (!["nl", "ar"].includes(adminLang)) adminLang = "nl";
+let currentSession;
+
+const adminText = {
+  nl: {
+    brandAdmin: "Beheer",
+    brandCms: "Firebase CMS",
+    loginTitle: "Veilige admin login",
+    username: "Gebruikersnaam of e-mail",
+    password: "Wachtwoord",
+    login: "Inloggen",
+    logout: "Uitloggen",
+    navHome: "Home",
+    navMenu: "Menu",
+    navOffers: "Aanbiedingen",
+    navBanners: "Banners",
+    navGallery: "Galerij",
+    navContact: "Contact",
+    navHours: "Openingstijden",
+    protectedDashboard: "Beveiligd dashboard",
+    viewWebsite: "Website bekijken",
+    homeTitle: "Homepagina banners",
+    menuTitle: "Menu-items",
+    offersTitle: "Aanbiedingen",
+    bannersTitle: "Banners",
+    galleryTitle: "Galerij",
+    contactTitle: "Restaurantinformatie",
+    hoursTitle: "Openingstijden",
+    saveHome: "Home opslaan",
+    saveContact: "Contact opslaan",
+    saveHours: "Openingstijden opslaan",
+    addItem: "Item toevoegen",
+    addOffer: "Aanbieding toevoegen",
+    addBanner: "Banner toevoegen",
+    addPhoto: "Foto toevoegen",
+    role: "Rol",
+    title: "Titel",
+    slogan: "Slogan",
+    intro: "Intro",
+    about: "Over ons",
+    heroImage: "Hero-afbeelding",
+    phone: "Telefoon",
+    address: "Adres",
+    whatsappMessage: "WhatsApp-bericht",
+    instagramUrl: "Instagram URL",
+    tiktokUrl: "TikTok URL",
+    facebookUrl: "Facebook URL",
+    category: "Categorie",
+    badge: "Badge",
+    none: "Geen",
+    type: "Type",
+    price: "Prijs",
+    name: "Naam",
+    description: "Beschrijving",
+    bannerText: "Bannertekst",
+    uploadImage: "Afbeelding uploaden",
+    uploadHint: "Sleep een afbeelding hierheen of tik om te kiezen. JPG, PNG, WEBP - max 5MB",
+    save: "Opslaan",
+    delete: "Verwijderen",
+    saved: "Opgeslagen",
+    saveFailed: "Opslaan mislukt",
+    homepageSaved: "Homepagina opgeslagen",
+    contactSaved: "Restaurantinformatie opgeslagen",
+    hoursSaved: "Openingstijden opgeslagen",
+    deleted: "Verwijderd",
+    imageUploaded: "Afbeelding geupload",
+    uploadFailed: "Upload mislukt",
+    loggedOut: "Uitgelogd.",
+    loginFailed: "Inloggen mislukt.",
+    firebaseMissing: "Firebase-configuratie ontbreekt. Voeg de bestaande Firebase projectconfiguratie toe voordat je inlogt."
+  },
+  ar: {
+    brandAdmin: "الإدارة",
+    brandCms: "نظام Firebase",
+    loginTitle: "تسجيل دخول آمن للإدارة",
+    username: "اسم المستخدم أو البريد الإلكتروني",
+    password: "كلمة المرور",
+    login: "تسجيل الدخول",
+    logout: "تسجيل الخروج",
+    navHome: "الرئيسية",
+    navMenu: "القائمة",
+    navOffers: "العروض",
+    navBanners: "البنرات",
+    navGallery: "المعرض",
+    navContact: "التواصل",
+    navHours: "ساعات العمل",
+    protectedDashboard: "لوحة إدارة محمية",
+    viewWebsite: "عرض الموقع",
+    homeTitle: "بنرات الصفحة الرئيسية",
+    menuTitle: "عناصر القائمة",
+    offersTitle: "العروض والخصومات",
+    bannersTitle: "البنرات",
+    galleryTitle: "معرض الصور",
+    contactTitle: "معلومات المطعم",
+    hoursTitle: "ساعات العمل",
+    saveHome: "حفظ الرئيسية",
+    saveContact: "حفظ التواصل",
+    saveHours: "حفظ ساعات العمل",
+    addItem: "إضافة صنف",
+    addOffer: "إضافة عرض",
+    addBanner: "إضافة بنر",
+    addPhoto: "إضافة صورة",
+    role: "الدور",
+    title: "العنوان",
+    slogan: "الشعار",
+    intro: "المقدمة",
+    about: "من نحن",
+    heroImage: "صورة الواجهة",
+    phone: "الهاتف",
+    address: "العنوان",
+    whatsappMessage: "رسالة واتساب",
+    instagramUrl: "رابط إنستغرام",
+    tiktokUrl: "رابط تيك توك",
+    facebookUrl: "رابط فيسبوك",
+    category: "التصنيف",
+    badge: "الشارة",
+    none: "بدون",
+    type: "النوع",
+    price: "السعر",
+    name: "الاسم",
+    description: "الوصف",
+    bannerText: "نص البنر",
+    uploadImage: "رفع صورة",
+    uploadHint: "اسحب الصورة هنا أو اضغط للاختيار. JPG و PNG و WEBP - الحد الأقصى 5MB",
+    save: "حفظ",
+    delete: "حذف",
+    saved: "تم الحفظ",
+    saveFailed: "فشل الحفظ",
+    homepageSaved: "تم حفظ الصفحة الرئيسية",
+    contactSaved: "تم حفظ معلومات المطعم",
+    hoursSaved: "تم حفظ ساعات العمل",
+    deleted: "تم الحذف",
+    imageUploaded: "تم رفع الصورة",
+    uploadFailed: "فشل رفع الصورة",
+    loggedOut: "تم تسجيل الخروج.",
+    loginFailed: "فشل تسجيل الدخول.",
+    firebaseMissing: "إعدادات Firebase غير موجودة. أضف إعدادات مشروع Firebase قبل تسجيل الدخول."
+  }
+};
+
+function tr(key) {
+  return adminText[adminLang]?.[key] || adminText.nl[key] || key;
+}
+
+function applyAdminLanguage() {
+  document.documentElement.lang = adminLang;
+  document.documentElement.dir = adminLang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-admin-lang]").forEach((node) => {
+    node.classList.toggle("active", node.dataset.adminLang === adminLang);
+  });
+  document.querySelectorAll("[data-admin-i18n]").forEach((node) => {
+    node.textContent = tr(node.dataset.adminI18n);
+  });
+  renderRole();
+}
+
+function renderRole() {
+  if (!currentSession || !$("#adminRole")) return;
+  $("#adminRole").textContent = `${tr("role")}: ${currentSession?.admin?.role || currentSession?.role || "owner"}`;
+}
+
+function localizedError(error, fallbackKey) {
+  const message = error?.message || "";
+  if (message.includes("Firebase is not configured")) return tr("firebaseMissing");
+  if (message.includes("Username or password") || message.includes("incorrect")) return adminLang === "ar" ? "اسم المستخدم أو كلمة المرور غير صحيحة." : "Gebruikersnaam of wachtwoord is onjuist.";
+  if (message.includes("Admin user was not found")) return adminLang === "ar" ? "لم يتم العثور على حساب الإدارة." : "Admin-gebruiker niet gevonden.";
+  if (message.includes("Enable Email/Password")) return adminLang === "ar" ? "فعّل تسجيل الدخول بالبريد وكلمة المرور في Firebase Authentication." : "Schakel e-mail/wachtwoord-login in bij Firebase Authentication.";
+  if (message.includes("Could not reach Firebase")) return adminLang === "ar" ? "تعذر الاتصال بـ Firebase. تحقق من الاتصال والإعدادات." : "Kan Firebase niet bereiken. Controleer de verbinding en instellingen.";
+  if (message.includes("No image selected")) return adminLang === "ar" ? "لم يتم اختيار صورة." : "Geen afbeelding geselecteerd.";
+  if (message.includes("Only JPG")) return adminLang === "ar" ? "يسمح فقط بصور JPG و PNG و WEBP." : "Alleen JPG-, PNG- en WEBP-afbeeldingen zijn toegestaan.";
+  if (message.includes("too large")) return adminLang === "ar" ? "الصورة كبيرة جدًا. الحد الأقصى 5MB." : "Afbeelding is te groot. Maximaal 5MB.";
+  return message || tr(fallbackKey);
+}
 
 function note(message) {
   $("#saveStatus").textContent = message;
@@ -38,9 +212,10 @@ function showLogin(message = "") {
 }
 
 async function showDashboard(session) {
+  currentSession = session;
   $("#loginView").classList.add("hidden");
   $("#dashboardView").classList.remove("hidden");
-  $("#adminRole").textContent = `Role: ${session?.admin?.role || session?.role || "owner"}`;
+  renderRole();
   siteData = await loadContent();
   renderAll();
 }
@@ -50,7 +225,7 @@ async function loadContent() {
   return loadFirebaseSiteData();
 }
 
-async function saveContent(message = "Saved") {
+async function saveContent(message = tr("saved")) {
   loading(true);
   try {
     await saveFirebaseSiteData(siteData);
@@ -58,7 +233,7 @@ async function saveContent(message = "Saved") {
     renderAll();
     note(message);
   } catch (error) {
-    note(error.message || "Save failed");
+    note(localizedError(error, "saveFailed"));
   } finally {
     loading(false);
   }
@@ -72,7 +247,7 @@ $("#loginForm").addEventListener("submit", async (event) => {
     const session = await signInAdmin(form.get("username"), form.get("password"));
     await showDashboard(session);
   } catch (error) {
-    showLogin(error.message || "Login failed.");
+    showLogin(localizedError(error, "loginFailed"));
   } finally {
     loading(false);
   }
@@ -80,7 +255,8 @@ $("#loginForm").addEventListener("submit", async (event) => {
 
 $("#logoutBtn").addEventListener("click", async () => {
   await signOutAdmin();
-  showLogin("Logged out.");
+  currentSession = null;
+  showLogin(tr("loggedOut"));
 });
 
 document.querySelectorAll(".admin-sidebar nav button").forEach((button) => {
@@ -94,9 +270,8 @@ document.querySelectorAll(".admin-sidebar nav button").forEach((button) => {
 document.querySelectorAll("[data-admin-lang]").forEach((button) => {
   button.addEventListener("click", () => {
     adminLang = button.dataset.adminLang;
-    document.documentElement.lang = adminLang;
-    document.documentElement.dir = adminLang === "ar" ? "rtl" : "ltr";
-    document.querySelectorAll("[data-admin-lang]").forEach((node) => node.classList.toggle("active", node.dataset.adminLang === adminLang));
+    localStorage.setItem(adminLangKey, adminLang);
+    applyAdminLanguage();
     renderAll();
   });
 });
@@ -111,17 +286,17 @@ document.querySelectorAll("[data-add]").forEach((button) => {
 
 $("#saveHomeBtn").addEventListener("click", () => {
   collectFields($("#homeForm"), siteData.homepage);
-  saveContent("Homepage saved");
+  saveContent(tr("homepageSaved"));
 });
 
 $("#saveContactBtn").addEventListener("click", () => {
   collectFields($("#contactForm"), siteData.settings);
-  saveContent("Restaurant information saved");
+  saveContent(tr("contactSaved"));
 });
 
 $("#saveHoursBtn").addEventListener("click", () => {
   collectFields($("#hoursForm"), siteData.settings);
-  saveContent("Opening hours saved");
+  saveContent(tr("hoursSaved"));
 });
 
 function renderAll() {
@@ -137,11 +312,11 @@ function renderAll() {
 
 function renderHome() {
   $("#homeForm").innerHTML = `
-    ${multiInput(siteData.homepage, "title", "Title")}
-    ${multiInput(siteData.homepage, "slogan", "Slogan", "textarea")}
-    ${multiInput(siteData.homepage, "intro", "Intro", "textarea")}
-    ${multiInput(siteData.homepage, "about", "About", "textarea")}
-    ${uploadLabel("Hero image", "data-home-image")}
+    ${multiInput(siteData.homepage, "title", tr("title"))}
+    ${multiInput(siteData.homepage, "slogan", tr("slogan"), "textarea")}
+    ${multiInput(siteData.homepage, "intro", tr("intro"), "textarea")}
+    ${multiInput(siteData.homepage, "about", tr("about"), "textarea")}
+    ${uploadLabel(tr("heroImage"), "data-home-image")}
   `;
   $("[data-home-image]").addEventListener("change", async (event) => {
     const file = event.target.files?.[0];
@@ -153,12 +328,12 @@ function renderHome() {
 
 function renderContact() {
   $("#contactForm").innerHTML = `
-    ${field("phone", "Phone", siteData.settings.phone || "")}
-    ${field("address", "Address", siteData.settings.address || "", "wide")}
-    ${field("whatsappMessage", "WhatsApp message", siteData.settings.whatsappMessage || "", "wide")}
-    ${field("instagram", "Instagram URL", siteData.settings.instagram || "")}
-    ${field("tiktok", "TikTok URL", siteData.settings.tiktok || "")}
-    ${field("facebook", "Facebook URL", siteData.settings.facebook || "")}
+    ${field("phone", tr("phone"), siteData.settings.phone || "")}
+    ${field("address", tr("address"), siteData.settings.address || "", "wide")}
+    ${field("whatsappMessage", tr("whatsappMessage"), siteData.settings.whatsappMessage || "", "wide")}
+    ${field("instagram", tr("instagramUrl"), siteData.settings.instagram || "")}
+    ${field("tiktok", tr("tiktokUrl"), siteData.settings.tiktok || "")}
+    ${field("facebook", tr("facebookUrl"), siteData.settings.facebook || "")}
   `;
 }
 
@@ -185,7 +360,7 @@ function renderCollection(collection, rootId, options) {
   root.querySelectorAll("[data-delete]").forEach((button) => {
     button.addEventListener("click", () => {
       siteData[collection] = siteData[collection].filter((item) => item.id !== button.closest(".editor-card").dataset.id);
-      saveContent("Deleted");
+      saveContent(tr("deleted"));
     });
   });
   root.querySelectorAll("[data-image]").forEach((input) => {
@@ -206,16 +381,16 @@ function editorCard(collection, item, options) {
       <div class="editor-fields">
         ${options.category ? categorySelect(item) : ""}
         ${options.badge ? badgeSelect(item) : ""}
-        ${options.type ? field("type", "Type", item.type || "") : ""}
-        ${options.price ? field("price", "Price", item.price || "") : ""}
-        ${multiInput(item, options.title ? "title" : "name", options.title ? "Title" : "Name")}
-        ${options.desc ? multiInput(item, "desc", "Description", "textarea") : ""}
-        ${options.text ? multiInput(item, "text", "Banner text", "textarea") : ""}
-        ${uploadLabel("Upload image", "data-image")}
+        ${options.type ? field("type", tr("type"), item.type || "") : ""}
+        ${options.price ? field("price", tr("price"), item.price || "") : ""}
+        ${multiInput(item, options.title ? "title" : "name", options.title ? tr("title") : tr("name"))}
+        ${options.desc ? multiInput(item, "desc", tr("description"), "textarea") : ""}
+        ${options.text ? multiInput(item, "text", tr("bannerText"), "textarea") : ""}
+        ${uploadLabel(tr("uploadImage"), "data-image")}
       </div>
       <div class="editor-actions">
-        <button class="btn primary" type="button" data-save>Save</button>
-        <button class="btn ghost danger" type="button" data-delete>Delete</button>
+        <button class="btn primary" type="button" data-save>${tr("save")}</button>
+        <button class="btn ghost danger" type="button" data-delete>${tr("delete")}</button>
       </div>
     </article>
   `;
@@ -224,7 +399,7 @@ function editorCard(collection, item, options) {
 function saveEditor(collection, card) {
   const item = siteData[collection].find((entry) => entry.id === card.dataset.id);
   collectFields(card, item);
-  saveContent("Saved");
+  saveContent(tr("saved"));
 }
 
 function collectFields(root, item) {
@@ -247,15 +422,15 @@ function field(fieldName, label, value, className = "") {
 }
 
 function uploadLabel(label, attribute) {
-  return `<label class="wide upload-label"><span>${label}</span><small>Drop image here or tap to select. JPG, PNG, WEBP - max 5MB</small><input ${attribute} type="file" accept="${imageAccept}" /></label>`;
+  return `<label class="wide upload-label"><span>${label}</span><small>${tr("uploadHint")}</small><input ${attribute} type="file" accept="${imageAccept}" /></label>`;
 }
 
 function categorySelect(item) {
-  return `<label><span>Category</span><select data-field="category">${categoryOrder.map((cat) => `<option value="${cat}" ${item.category === cat ? "selected" : ""}>${ui[adminLang].categories[cat]}</option>`).join("")}</select></label>`;
+  return `<label><span>${tr("category")}</span><select data-field="category">${categoryOrder.map((cat) => `<option value="${cat}" ${item.category === cat ? "selected" : ""}>${ui[adminLang].categories[cat]}</option>`).join("")}</select></label>`;
 }
 
 function badgeSelect(item) {
-  return `<label><span>Badge</span><select data-field="badge">${badgeOptions.map((badge) => `<option value="${badge}" ${item.badge === badge ? "selected" : ""}>${badge || "None"}</option>`).join("")}</select></label>`;
+  return `<label><span>${tr("badge")}</span><select data-field="badge">${badgeOptions.map((badge) => `<option value="${badge}" ${item.badge === badge ? "selected" : ""}>${badge ? (ui[adminLang].badges[badge] || badge) : tr("none")}</option>`).join("")}</select></label>`;
 }
 
 async function uploadToField(file, item, fieldName, folder) {
@@ -264,9 +439,9 @@ async function uploadToField(file, item, fieldName, folder) {
     const preview = document.querySelector(`[data-id="${item.id}"] [data-preview]`);
     if (preview) preview.src = await fileToDataUrl(file);
     item[fieldName] = await uploadFirebaseImage(file, folder);
-    await saveContent("Image uploaded");
+    await saveContent(tr("imageUploaded"));
   } catch (error) {
-    note(error.message || "Upload failed");
+    note(localizedError(error, "uploadFailed"));
   } finally {
     loading(false);
   }
@@ -347,7 +522,8 @@ function escapeAttr(value) {
   return escapeHtml(value);
 }
 
+applyAdminLanguage();
 getAdminSession().then((session) => {
   if (session) showDashboard(session);
-  else showLogin(isFirebaseConfigured() ? "" : "Firebase config is missing. Add the existing Firebase project config before logging in.");
+  else showLogin(isFirebaseConfigured() ? "" : tr("firebaseMissing"));
 });
