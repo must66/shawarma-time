@@ -17,7 +17,10 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null
         && request.auth.uid == userId
-        && request.auth.token.email == "admin@shawarma-time.local";
+        && request.auth.token.email in [
+          "admin@shawarma-time.local",
+          "mustafa.chanel@hotmail.com"
+        ];
       allow update, delete: if isAdmin();
     }
   }

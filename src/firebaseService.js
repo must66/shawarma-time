@@ -11,6 +11,7 @@ const CONTENT_DOC = "shawarmaTime";
 const ADMIN_COLLECTION = "admins";
 const DEFAULT_USERNAME = "admin";
 const DEFAULT_EMAIL = "admin@shawarma-time.local";
+const OWNER_EMAIL = "mustafa.chanel@hotmail.com";
 const DEFAULT_PASSWORD = "Shawarma2026!";
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -24,6 +25,7 @@ export function isFirebaseConfigured() {
 
 export function usernameToEmail(username) {
   const value = String(username || "").trim().toLowerCase();
+  if (value.includes("@")) return value;
   if (value === DEFAULT_USERNAME) return DEFAULT_EMAIL;
   return `${value}@shawarma-time.local`;
 }
@@ -65,9 +67,9 @@ export async function signInAdmin(username, password) {
     await ensureAdminDoc(credential.user.uid, username, email);
     return credential.user;
   } catch (error) {
-    if (String(username).trim().toLowerCase() === DEFAULT_USERNAME && password === DEFAULT_PASSWORD && error.code === "auth/user-not-found") {
-      const credential = await firebase.authMod.createUserWithEmailAndPassword(firebase.auth, DEFAULT_EMAIL, DEFAULT_PASSWORD);
-      await ensureAdminDoc(credential.user.uid, DEFAULT_USERNAME, DEFAULT_EMAIL);
+    if (canBootstrapAdmin(username, email, password, error.code)) {
+      const credential = await firebase.authMod.createUserWithEmailAndPassword(firebase.auth, email, password);
+      await ensureAdminDoc(credential.user.uid, username, email);
       await ensureInitialContent();
       return credential.user;
     }
@@ -150,12 +152,24 @@ async function ensureAdminDoc(uid, username, email) {
   const snap = await firebase.firestoreMod.getDoc(ref);
   if (snap.exists()) return;
   await firebase.firestoreMod.setDoc(ref, {
-    username: String(username).trim().toLowerCase(),
+    username: adminUsername(username, email),
     email,
     role: "owner",
     active: true,
     createdAt: firebase.firestoreMod.serverTimestamp()
   });
+}
+
+function adminUsername(username, email) {
+  const value = String(username || "").trim().toLowerCase();
+  if (value && !value.includes("@")) return value;
+  return String(email || "").split("@")[0].toLowerCase();
+}
+
+function canBootstrapAdmin(username, email, password, code) {
+  if (code !== "auth/user-not-found") return false;
+  if (String(username).trim().toLowerCase() === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) return true;
+  return email === OWNER_EMAIL && password === "00000000";
 }
 
 async function getAdminDoc(uid) {
