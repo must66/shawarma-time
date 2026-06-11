@@ -17,7 +17,7 @@ service cloud.firestore {
       allow create: if request.resource.data.status == "new"
         && request.resource.data.orderStatus == "new"
         && request.resource.data.source == "website"
-        && request.resource.data.paymentMethod in ["cash", "restaurant", "stripe"]
+        && request.resource.data.paymentMethod in ["cash", "restaurant", "stripe", "mollie"]
         && request.resource.data.paymentStatus in ["unpaid", "pending"]
         && request.resource.data.customer.name is string
         && request.resource.data.customer.phone is string

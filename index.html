@@ -12,7 +12,7 @@
     <meta property="og:locale" content="nl_NL" />
     <title>Shawarma Time</title>
     <link rel="canonical" href="https://shawarma-time.netlify.app/" />
-    <link rel="stylesheet" href="src/styles.css?v=20260611-stripe-fix" />
+    <link rel="stylesheet" href="src/styles.css?v=20260611-mollie-payments-2" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -214,8 +214,8 @@
             <span id="paymentRestaurantLabel">Betalen in restaurant</span>
           </label>
           <label>
-            <input type="radio" name="paymentMethod" value="stripe" />
-            <span id="paymentStripeLabel">Online betalen met Stripe</span>
+            <input type="radio" name="paymentMethod" value="mollie" />
+            <span id="paymentMollieLabel">Online betalen met Mollie</span>
           </label>
         </fieldset>
         <button class="btn primary" id="submitOrderBtn" type="submit">Bestelling versturen</button>
@@ -230,6 +230,6 @@
       <span data-section-text="footer">Showcase website voor Shawarma Time. Geen online bestellen, geen reserveringen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260611-stripe-fix"></script>
+    <script type="module" src="src/app.js?v=20260611-mollie-payments-2"></script>
   </body>
 </html>

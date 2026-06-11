@@ -299,7 +299,7 @@ function renderCart() {
   $("#paymentMethodLabel").textContent = t("section.paymentMethod");
   $("#paymentCashLabel").textContent = t("section.cashOnDelivery");
   $("#paymentRestaurantLabel").textContent = t("section.payAtRestaurant");
-  $("#paymentStripeLabel").textContent = t("section.stripePayment");
+  $("#paymentMollieLabel").textContent = t("section.molliePayment");
   $("#submitOrderBtn").textContent = t("section.submitOrder");
   $("#cartClose").setAttribute("aria-label", t("section.closeCart"));
   list.querySelectorAll("[data-cart-inc]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartInc, 1)));
@@ -353,9 +353,9 @@ async function submitCart(event) {
       },
       paymentMethod
     };
-    if (paymentMethod === "stripe") {
-      setStatus(t("section.stripeRedirect"), false);
-      await redirectToStripeCheckout(orderPayload);
+    if (paymentMethod === "mollie") {
+      setStatus(t("section.mollieRedirect"), false);
+      await redirectToMolliePayment(orderPayload);
       return;
     }
     const orderId = await createFirebaseOrder(orderPayload);
@@ -416,6 +416,48 @@ async function redirectToStripeCheckout(orderPayload) {
     throw new Error(payload.error || t("section.stripeUnavailable"));
   }
   window.location.href = payload.url;
+}
+
+async function redirectToMolliePayment(orderPayload) {
+  const endpoint = paymentConfig.molliePaymentEndpoint;
+  if (!endpoint) throw new Error(t("section.mollieUnavailable"));
+  await assertMollieReady();
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      order: {
+        ...orderPayload,
+        paymentMethod: "mollie",
+        subtotal: cartTotal(),
+        currency: "EUR"
+      },
+      redirectUrl: new URL("payment-success.html", window.location.href).toString(),
+      cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel`
+    })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.url) {
+    throw new Error(payload.error || t("section.mollieUnavailable"));
+  }
+  window.location.href = payload.url;
+}
+
+async function assertMollieReady() {
+  const endpoint = paymentConfig.mollieConfigStatusEndpoint;
+  if (!endpoint) return;
+  let response;
+  try {
+    response = await fetch(endpoint, { headers: { accept: "application/json" } });
+  } catch {
+    throw new Error(t("section.mollieMissingBackend"));
+  }
+  if (!response.ok) throw new Error(t("section.mollieMissingBackend"));
+  const status = await response.json().catch(() => null);
+  const missing = [];
+  if (!status?.mollieApiKey) missing.push("MOLLIE_API_KEY");
+  if (!status?.firebaseServiceAccount) missing.push("FIREBASE_SERVICE_ACCOUNT");
+  if (missing.length) throw new Error(`${t("section.mollieMissingConfig")} Missing: ${missing.join(", ")}`);
 }
 
 async function assertStripeReady() {

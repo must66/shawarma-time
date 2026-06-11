@@ -64,6 +64,7 @@ const adminText = {
     paymentCash: "Contant",
     paymentRestaurant: "In restaurant",
     paymentStripe: "Stripe",
+    paymentMollie: "Mollie",
     paymentPaid: "Betaald",
     paymentPending: "In afwachting",
     paymentUnpaid: "Niet betaald",
@@ -166,6 +167,7 @@ const adminText = {
     paymentCash: "نقداً",
     paymentRestaurant: "في المطعم",
     paymentStripe: "Stripe",
+    paymentMollie: "Mollie",
     paymentPaid: "مدفوع",
     paymentPending: "قيد الانتظار",
     paymentUnpaid: "غير مدفوع",
@@ -268,6 +270,7 @@ const adminText = {
     paymentCash: "Bar",
     paymentRestaurant: "Im Restaurant",
     paymentStripe: "Stripe",
+    paymentMollie: "Mollie",
     paymentPaid: "Bezahlt",
     paymentPending: "Ausstehend",
     paymentUnpaid: "Nicht bezahlt",
@@ -606,7 +609,7 @@ function statusLabel(status) {
 }
 
 function paymentMethodLabel(method) {
-  const keys = { cash: "paymentCash", restaurant: "paymentRestaurant", stripe: "paymentStripe" };
+  const keys = { cash: "paymentCash", restaurant: "paymentRestaurant", stripe: "paymentStripe", mollie: "paymentMollie" };
   return tr(keys[method] || "paymentCash");
 }
 

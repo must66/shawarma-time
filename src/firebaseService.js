@@ -269,7 +269,7 @@ function normalizeOrder(order) {
   };
   if (!customer.name || !customer.phone) throw new Error("Customer name and phone are required.");
   const subtotal = items.reduce((sum, item) => sum + item.priceValue * item.quantity, 0);
-  const paymentMethod = ["cash", "restaurant", "stripe"].includes(order?.paymentMethod) ? order.paymentMethod : "cash";
+  const paymentMethod = ["cash", "restaurant", "stripe", "mollie"].includes(order?.paymentMethod) ? order.paymentMethod : "cash";
   return {
     customer,
     items,
