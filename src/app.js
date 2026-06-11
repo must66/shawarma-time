@@ -15,15 +15,100 @@ const routeSections = {
   "/menu": "menu",
   "/offers": "offers",
   "/gallery": "gallery",
+  "/checkout": "checkout",
+  "/success": "success",
   "/about": "about",
   "/hours": "hours",
   "/contact": "contact",
   "/reviews": "reviews",
   "/socials": "socials"
 };
+const orderingUi = {
+  nl: {
+    sectionText: {
+      footer: "Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen."
+    },
+    section: {
+      addedToCart: "is toegevoegd aan je winkelwagen.",
+      checkout: "Checkout",
+      checkoutEyebrow: "Veilig bestellen",
+      checkoutTitle: "Rond je bestelling af",
+      checkoutIntro: "Vul je gegevens in, kies je betaalmethode en bevestig je bestelling.",
+      yourOrder: "Jouw bestelling",
+      addMore: "Meer toevoegen",
+      goToCheckout: "Naar checkout",
+      idealPayment: "iDEAL online betalen",
+      mollieWallets: "iDEAL, Apple Pay, Google Pay en kaart via Mollie",
+      orderConfirmed: "Bestelling bevestigd",
+      thankYou: "Bedankt voor je bestelling",
+      orderNumber: "Ordernummer",
+      prepTime: "Bereidingstijd",
+      defaultPrepTime: "20-30 min",
+      successMessage: "We gaan direct voor je aan de slag. Totaal:",
+      successOnlineMessage: "Je betaling is ontvangen. De bestelling wordt automatisch doorgestuurd naar de keuken.",
+      onlineOrderNumber: "Online betaald",
+      backToMenu: "Terug naar menu"
+    }
+  },
+  ar: {
+    sectionText: {
+      footer: "شاورما تايم فينلو. اطلب أونلاين وادفع عبر iDEAL واستلم بسرعة."
+    },
+    section: {
+      addedToCart: "تمت إضافته إلى سلة الطلب.",
+      checkout: "إتمام الطلب",
+      checkoutEyebrow: "طلب آمن",
+      checkoutTitle: "أكمل طلبك",
+      checkoutIntro: "أدخل بياناتك، اختر طريقة الدفع وأكد طلبك.",
+      yourOrder: "طلبك",
+      addMore: "أضف المزيد",
+      goToCheckout: "إلى الدفع",
+      idealPayment: "الدفع أونلاين عبر iDEAL",
+      mollieWallets: "iDEAL و Apple Pay و Google Pay والبطاقة عبر Mollie",
+      orderConfirmed: "تم تأكيد الطلب",
+      thankYou: "شكراً لطلبك",
+      orderNumber: "رقم الطلب",
+      prepTime: "وقت التحضير",
+      defaultPrepTime: "20-30 دقيقة",
+      successMessage: "سنبدأ بتحضير طلبك فوراً. المجموع:",
+      successOnlineMessage: "تم استلام الدفع. سيتم إرسال الطلب تلقائياً إلى المطبخ.",
+      onlineOrderNumber: "دفع أونلاين",
+      backToMenu: "العودة إلى القائمة"
+    }
+  },
+  de: {
+    sectionText: {
+      footer: "Shawarma Time Venlo. Online bestellen, mit iDEAL bezahlen und schnell abholen."
+    },
+    section: {
+      addedToCart: "wurde in den Warenkorb gelegt.",
+      checkout: "Checkout",
+      checkoutEyebrow: "Sicher bestellen",
+      checkoutTitle: "Bestellung abschliessen",
+      checkoutIntro: "Gib deine Daten ein, waehle die Zahlung und bestaetige die Bestellung.",
+      yourOrder: "Deine Bestellung",
+      addMore: "Mehr hinzufuegen",
+      goToCheckout: "Zum Checkout",
+      idealPayment: "Online mit iDEAL bezahlen",
+      mollieWallets: "iDEAL, Apple Pay, Google Pay und Karte via Mollie",
+      orderConfirmed: "Bestellung bestaetigt",
+      thankYou: "Danke fuer deine Bestellung",
+      orderNumber: "Bestellnummer",
+      prepTime: "Zubereitungszeit",
+      defaultPrepTime: "20-30 min",
+      successMessage: "Wir beginnen direkt mit deiner Bestellung. Summe:",
+      successOnlineMessage: "Die Zahlung wurde empfangen. Die Bestellung wird automatisch an die Kueche gesendet.",
+      onlineOrderNumber: "Online bezahlt",
+      backToMenu: "Zurueck zum Menue"
+    }
+  }
+};
 
 function t(path) {
-  return path.split(".").reduce((value, key) => value?.[key], ui[lang]) || path;
+  const keys = path.split(".");
+  return keys.reduce((value, key) => value?.[key], orderingUi[lang])
+    || keys.reduce((value, key) => value?.[key], ui[lang])
+    || path;
 }
 
 function appBasePath() {
@@ -40,6 +125,12 @@ function currentRoute() {
 function routeUrl(route) {
   const base = appBasePath();
   return `${base}${route === "/" ? "/" : route}`;
+}
+
+function navigateToRoute(route, behavior = "smooth") {
+  if (!routeSections[route]) return;
+  window.history.pushState({ route }, "", routeUrl(route));
+  scrollToRoute(route, behavior);
 }
 
 function scrollToRoute(route = currentRoute(), behavior = "smooth") {
@@ -64,7 +155,8 @@ function applyLanguage() {
     button.classList.toggle("active", button.dataset.lang === lang);
   });
   document.querySelectorAll("[data-section-text]").forEach((el) => {
-    el.textContent = localized(data.sectionText?.[el.dataset.sectionText], lang);
+    el.textContent = orderingUi[lang]?.sectionText?.[el.dataset.sectionText]
+      || localized(data.sectionText?.[el.dataset.sectionText], lang);
   });
   renderCart();
 }
@@ -183,7 +275,7 @@ function itemCard(item) {
         <p>${localized(item.desc, lang)}</p>
         <div class="food-card-bottom">
           <strong>${item.price}</strong>
-          <button class="btn tiny" type="button" data-add-cart="${encodeAttr(item.id)}">${t("section.addToCart")}</button>
+          <button class="btn tiny add-button" type="button" data-add-cart="${encodeAttr(item.id)}">${t("section.addToCart")}</button>
         </div>
       </div>
     </article>
@@ -287,6 +379,7 @@ function addToCart(itemId) {
     quantity: 1
   });
   renderCart();
+  setStatus(`${localized(item.name, lang)} ${t("section.addedToCart")}`, false);
 }
 
 function priceNumber(price) {
@@ -303,6 +396,8 @@ function renderCart() {
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartCount = $("#cartCount");
   if (cartCount) cartCount.textContent = String(count);
+  const mobileCartCount = $("#mobileCartCount");
+  if (mobileCartCount) mobileCartCount.textContent = String(count);
   $("#cartOpen")?.classList.toggle("has-items", count > 0);
   const title = $("#cartTitle");
   if (title) title.textContent = t("section.cart");
@@ -329,18 +424,39 @@ function renderCart() {
   }
   $("#cartSubtotalLabel").textContent = t("section.subtotal");
   $("#cartSubtotal").textContent = euro(cartTotal());
-  $("#orderNameLabel").textContent = t("section.customerName");
-  $("#orderPhoneLabel").textContent = t("section.customerPhone");
-  $("#orderNotesLabel").textContent = t("section.orderNotes");
-  $("#paymentMethodLabel").textContent = t("section.paymentMethod");
-  $("#paymentCashLabel").textContent = t("section.cashOnDelivery");
-  $("#paymentRestaurantLabel").textContent = t("section.payAtRestaurant");
-  $("#paymentMollieLabel").textContent = t("section.molliePayment");
-  $("#submitOrderBtn").textContent = t("section.submitOrder");
+  $("#goCheckoutBtn").textContent = t("section.goToCheckout");
+  $("#goCheckoutBtn").disabled = !cart.length;
   $("#cartClose").setAttribute("aria-label", t("section.closeCart"));
   list.querySelectorAll("[data-cart-inc]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartInc, 1)));
   list.querySelectorAll("[data-cart-dec]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartDec, -1)));
   list.querySelectorAll("[data-cart-remove]").forEach((button) => button.addEventListener("click", () => removeFromCart(button.dataset.cartRemove)));
+  renderCheckout();
+}
+
+function renderCheckout() {
+  const checkoutItems = $("#checkoutItems");
+  if (!checkoutItems) return;
+  $("#checkoutNameLabel").textContent = t("section.customerName");
+  $("#checkoutPhoneLabel").textContent = t("section.customerPhone");
+  $("#checkoutNotesLabel").textContent = t("section.orderNotes");
+  $("#checkoutPaymentMethodLabel").textContent = t("section.paymentMethod");
+  $("#checkoutMollieLabel").textContent = t("section.idealPayment");
+  $("#checkoutMollieNote").textContent = t("section.mollieWallets");
+  $("#checkoutCashLabel").textContent = t("section.cashOnDelivery");
+  $("#checkoutRestaurantLabel").textContent = t("section.payAtRestaurant");
+  $("#submitOrderBtn").textContent = t("section.submitOrder");
+  $("#checkoutSubtotalLabel").textContent = t("section.subtotal");
+  $("#checkoutSubtotal").textContent = euro(cartTotal());
+  checkoutItems.innerHTML = cart.length ? cart.map((item) => `
+    <article class="checkout-item">
+      <img src="${item.image}" alt="${encodeAttr(item.name)}" loading="lazy" decoding="async" />
+      <div>
+        <strong>${item.name}</strong>
+        <span>${item.quantity} x ${item.price}</span>
+      </div>
+      <b>${euro(item.priceValue * item.quantity)}</b>
+    </article>
+  `).join("") : `<p class="cart-empty">${t("section.cartEmpty")}</p>`;
 }
 
 function euro(value) {
@@ -394,13 +510,13 @@ async function submitCart(event) {
       await redirectToMolliePayment(orderPayload);
       return;
     }
+    const total = cartTotal();
     const orderId = await createFirebaseOrder(orderPayload);
-    notifyOrderCreated(orderId, orderPayload);
+    notifyOrderCreated(orderId, orderPayload, total);
+    showOrderSuccess(orderId, total, paymentMethod);
     cart = [];
     cartForm.reset();
     renderCart();
-    closeCart();
-    setStatus(t("section.orderSuccess"), false);
   } catch (error) {
     console.error(error);
     setStatus(error?.message || t("section.orderError"), true);
@@ -409,7 +525,45 @@ async function submitCart(event) {
   }
 }
 
-async function notifyOrderCreated(orderId, orderPayload) {
+function showOrderSuccess(orderId, total, paymentMethod) {
+  const orderNumber = formatOrderNumber(orderId);
+  const successData = {
+    orderId,
+    orderNumber,
+    prepTime: t("section.defaultPrepTime"),
+    total,
+    paymentMethod,
+    createdAt: new Date().toISOString()
+  };
+  sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));
+  renderSuccess(successData);
+  closeCart();
+  navigateToRoute("/success", "auto");
+  setStatus(t("section.orderSuccess"), false);
+}
+
+function renderSuccess(successData = getLastOrder()) {
+  const number = successData?.orderNumber || "-";
+  $("#successOrderNumber").textContent = number;
+  $("#successPrepTime").textContent = successData?.prepTime || t("section.defaultPrepTime");
+  $("#successMessage").textContent = number === "-"
+    ? t("section.successOnlineMessage")
+    : `${t("section.successMessage")} ${euro(Number(successData.total || 0))}`;
+}
+
+function getLastOrder() {
+  try {
+    return JSON.parse(sessionStorage.getItem("shawarma-time-last-order") || "null");
+  } catch {
+    return null;
+  }
+}
+
+function formatOrderNumber(orderId) {
+  return `ST-${String(orderId || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
+}
+
+async function notifyOrderCreated(orderId, orderPayload, total = cartTotal()) {
   const endpoint = paymentConfig.orderNotificationEndpoint;
   if (!endpoint) return;
   try {
@@ -420,7 +574,7 @@ async function notifyOrderCreated(orderId, orderPayload) {
         orderId,
         order: {
           ...orderPayload,
-          subtotal: cartTotal(),
+          subtotal: total,
           currency: "EUR"
         }
       })
@@ -468,7 +622,7 @@ async function redirectToMolliePayment(orderPayload) {
         subtotal: cartTotal(),
         currency: "EUR"
       },
-      redirectUrl: new URL("payment-success.html", window.location.href).toString(),
+      redirectUrl: new URL(`${routeUrl("/success")}?payment=success`, window.location.origin).toString(),
       cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel`
     })
   });
@@ -537,6 +691,8 @@ function render() {
   renderReviews();
   renderSocials();
   renderContact();
+  renderCheckout();
+  renderSuccess();
   renderPaymentReturnMessage();
   window.requestAnimationFrame(() => scrollToRoute(currentRoute(), "auto"));
 }
@@ -544,7 +700,13 @@ function render() {
 function renderPaymentReturnMessage() {
   const params = new URLSearchParams(window.location.search);
   const payment = params.get("payment");
-  if (payment === "success") setStatus(t("section.paymentSuccess"), false);
+  if (payment === "success") {
+    renderSuccess({
+      orderNumber: t("section.onlineOrderNumber"),
+      prepTime: t("section.defaultPrepTime")
+    });
+    setStatus(t("section.paymentSuccess"), false);
+  }
   if (payment === "cancel") setStatus(t("section.paymentCancel"), true);
 }
 
@@ -595,10 +757,9 @@ document.querySelectorAll("[data-lang]").forEach((button) => {
 document.querySelectorAll("[data-route]").forEach((link) => {
   link.addEventListener("click", (event) => {
     const route = link.dataset.route || "/";
-    if (!routeSections[route]) return;
-    event.preventDefault();
-    window.history.pushState({ route }, "", routeUrl(route));
-    scrollToRoute(route);
+  if (!routeSections[route]) return;
+  event.preventDefault();
+    navigateToRoute(route);
     $(".main-nav")?.classList.remove("open");
     $(".nav-toggle")?.setAttribute("aria-expanded", "false");
   });
@@ -618,9 +779,18 @@ $("#lightbox").addEventListener("click", (event) => {
 });
 
 $("#cartOpen").addEventListener("click", openCart);
+$("#mobileCartBtn").addEventListener("click", openCart);
 $("#cartClose").addEventListener("click", closeCart);
 $("#cartBackdrop").addEventListener("click", closeCart);
-$("#cartForm").addEventListener("submit", submitCart);
+$("#goCheckoutBtn").addEventListener("click", () => {
+  if (!cart.length) {
+    setStatus(t("section.cartEmpty"), true);
+    return;
+  }
+  closeCart();
+  navigateToRoute("/checkout");
+});
+$("#checkoutForm").addEventListener("submit", submitCart);
 
 if (document.readyState === "complete") {
   document.body.classList.add("loaded");

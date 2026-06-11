@@ -24,7 +24,7 @@
         }
       }());
     </script>
-    <link rel="stylesheet" href="src/styles.css?v=20260611-spa-routing" />
+    <link rel="stylesheet" href="src/styles.css?v=20260611-order-flow" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -60,6 +60,7 @@
         <a href="./menu" data-route="/menu" data-i18n="nav.menu">Menu</a>
         <a href="./offers" data-route="/offers" data-i18n="nav.offers">Offers</a>
         <a href="./gallery" data-route="/gallery" data-i18n="nav.gallery">Gallery</a>
+        <a href="./checkout" data-route="/checkout" data-i18n="section.checkout">Checkout</a>
         <a href="./about" data-route="/about" data-i18n="nav.about">Over ons</a>
         <a href="./hours" data-route="/hours" data-i18n="nav.hours">Openingstijden</a>
         <a href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
@@ -100,6 +101,67 @@
           <span>Syrian Style</span>
           <span>Lebanese Grill</span>
           <span>Venlo</span>
+        </div>
+      </section>
+
+      <section id="checkout" class="section checkout-section reveal">
+        <div class="checkout-layout">
+          <div class="checkout-main">
+            <p class="eyebrow" data-i18n="section.checkoutEyebrow">Secure checkout</p>
+            <h2 data-i18n="section.checkoutTitle">Complete your order</h2>
+            <p class="checkout-intro" data-i18n="section.checkoutIntro">Enter your details, choose a payment method and confirm your order.</p>
+            <form class="checkout-form" id="checkoutForm">
+              <div class="form-row">
+                <label><span id="checkoutNameLabel">Naam</span><input name="name" autocomplete="name" required /></label>
+                <label><span id="checkoutPhoneLabel">Telefoon</span><input name="phone" autocomplete="tel" required /></label>
+              </div>
+              <label><span id="checkoutNotesLabel">Opmerking</span><textarea name="notes"></textarea></label>
+              <fieldset class="payment-methods checkout-payments">
+                <legend id="checkoutPaymentMethodLabel">Betaalmethode</legend>
+                <label class="payment-primary">
+                  <input type="radio" name="paymentMethod" value="mollie" checked />
+                  <span id="checkoutMollieLabel">iDEAL online betalen</span>
+                  <small id="checkoutMollieNote">iDEAL, Apple Pay, Google Pay en kaart via Mollie</small>
+                </label>
+                <label>
+                  <input type="radio" name="paymentMethod" value="cash" />
+                  <span id="checkoutCashLabel">Contant bij bezorging</span>
+                </label>
+                <label>
+                  <input type="radio" name="paymentMethod" value="restaurant" />
+                  <span id="checkoutRestaurantLabel">Betalen in restaurant</span>
+                </label>
+              </fieldset>
+              <button class="btn primary checkout-submit" id="submitOrderBtn" type="submit">Bestelling versturen</button>
+            </form>
+          </div>
+          <aside class="checkout-summary">
+            <div class="checkout-summary-head">
+              <span data-i18n="section.yourOrder">Your order</span>
+              <button type="button" class="btn tiny" data-route="/menu" data-i18n="section.addMore">Add more</button>
+            </div>
+            <div class="checkout-items" id="checkoutItems"></div>
+            <div class="cart-total">
+              <span id="checkoutSubtotalLabel">Totaal</span>
+              <strong id="checkoutSubtotal">€0,00</strong>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="success" class="section order-success-section reveal">
+        <div class="order-success-card">
+          <p class="eyebrow" data-i18n="section.orderConfirmed">Order confirmed</p>
+          <h2 data-i18n="section.thankYou">Thank you for your order</h2>
+          <div class="success-details">
+            <p><span data-i18n="section.orderNumber">Order number</span><strong id="successOrderNumber">-</strong></p>
+            <p><span data-i18n="section.prepTime">Preparation time</span><strong id="successPrepTime">20-30 min</strong></p>
+          </div>
+          <p id="successMessage"></p>
+          <div class="hero-actions">
+            <a class="btn primary" href="./menu" data-route="/menu" data-i18n="section.backToMenu">Back to menu</a>
+            <a class="btn ghost" href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
+          </div>
         </div>
       </section>
 
@@ -211,37 +273,24 @@
         <span id="cartSubtotalLabel">Totaal</span>
         <strong id="cartSubtotal">€0,00</strong>
       </div>
-      <form class="cart-form" id="cartForm">
-        <label><span id="orderNameLabel">Naam</span><input name="name" autocomplete="name" required /></label>
-        <label><span id="orderPhoneLabel">Telefoon</span><input name="phone" autocomplete="tel" required /></label>
-        <label><span id="orderNotesLabel">Opmerking</span><textarea name="notes"></textarea></label>
-        <fieldset class="payment-methods">
-          <legend id="paymentMethodLabel">Betaalmethode</legend>
-          <label>
-            <input type="radio" name="paymentMethod" value="cash" checked />
-            <span id="paymentCashLabel">Contant bij bezorging</span>
-          </label>
-          <label>
-            <input type="radio" name="paymentMethod" value="restaurant" />
-            <span id="paymentRestaurantLabel">Betalen in restaurant</span>
-          </label>
-          <label>
-            <input type="radio" name="paymentMethod" value="mollie" />
-            <span id="paymentMollieLabel">Online betalen met Mollie</span>
-          </label>
-        </fieldset>
-        <button class="btn primary" id="submitOrderBtn" type="submit">Bestelling versturen</button>
-      </form>
+      <button class="btn primary cart-checkout" id="goCheckoutBtn" type="button">Checkout</button>
     </aside>
+
+    <nav class="mobile-bottom-nav" aria-label="Mobile quick navigation">
+      <a href="./" data-route="/"><span>ST</span><b data-i18n="nav.home">Home</b></a>
+      <a href="./menu" data-route="/menu"><span>M</span><b data-i18n="nav.menu">Menu</b></a>
+      <button type="button" id="mobileCartBtn"><span id="mobileCartCount">0</span><b data-i18n="section.cart">Cart</b></button>
+      <a href="./checkout" data-route="/checkout"><span>€</span><b data-i18n="section.checkout">Checkout</b></a>
+    </nav>
 
     <a class="floating-whatsapp" id="floatingWhatsapp" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
 
     <footer class="site-footer">
       <strong>Shawarma Time</strong>
       <span id="footerAddress"></span>
-      <span data-section-text="footer">Showcase website voor Shawarma Time. Geen online bestellen, geen reserveringen.</span>
+      <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260611-spa-routing"></script>
+    <script type="module" src="src/app.js?v=20260611-order-flow"></script>
   </body>
 </html>
