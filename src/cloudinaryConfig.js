@@ -1,6 +1,6 @@
 export const cloudinaryConfig = {
-  cloudName: "",
-  uploadPreset: "",
+  cloudName: "ddvu3rr4i",
+  uploadPreset: "shawarma_time",
   folder: "shawarma-time"
 };
 
