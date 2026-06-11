@@ -154,7 +154,8 @@ function multilingual(row, prefix) {
   return {
     ar: row[`${prefix}_ar`] || "",
     nl: row[`${prefix}_nl`] || "",
-    de: row[`${prefix}_de`] || ""
+    de: row[`${prefix}_de`] || "",
+    en: row[`${prefix}_en`] || row[`${prefix}_nl`] || ""
   };
 }
 

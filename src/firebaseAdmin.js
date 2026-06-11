@@ -12,7 +12,7 @@ import {
 } from "./firebaseService.js";
 
 const $ = (selector) => document.querySelector(selector);
-const langs = ["nl", "ar", "de"];
+const langs = ["nl", "ar", "de", "en"];
 const imageAccept = ".jpg,.jpeg,.png,.webp";
 const adminLangKey = "shawarma-time-admin-lang";
 
@@ -889,7 +889,7 @@ function setupUploads() {
 function blankItem(collection) {
   const id = `${collection}-${Date.now()}`;
   const baseImage = siteData.homepage.heroImage;
-  const blank = { nl: "", ar: "", de: "" };
+  const blank = { nl: "", ar: "", de: "", en: "" };
   return {
     menu: { id, category: "shawarma", badge: "", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },
     offers: { id, type: "daily", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },

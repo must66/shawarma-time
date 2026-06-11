@@ -986,6 +986,7 @@ function render() {
   renderTracking();
   renderPaymentReturnMessage();
   window.requestAnimationFrame(() => scrollToRoute(currentRoute(), "auto"));
+  window.setTimeout(() => scrollToRoute(currentRoute(), "auto"), 120);
 }
 
 function renderPaymentReturnMessage() {

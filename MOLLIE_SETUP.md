@@ -27,7 +27,7 @@ Optional:
 
 - `MOLLIE_PAYMENT_METHODS`
 
-Leave `MOLLIE_PAYMENT_METHODS` empty to let Mollie Checkout show every enabled payment method and wallet for the customer's device. This is recommended for iDEAL, Apple Pay, Google Pay and card support.
+Leave `MOLLIE_PAYMENT_METHODS` empty to let Mollie Checkout show every enabled payment method and wallet for the customer's device. This is recommended for iDEAL, Apple Pay, Google Pay, Visa and Mastercard support.
 
 If you want to restrict the checkout, use Mollie method IDs such as:
 
@@ -35,7 +35,7 @@ If you want to restrict the checkout, use Mollie method IDs such as:
 ideal,applepay,creditcard
 ```
 
-Enable iDEAL, Apple Pay, credit card and Google Pay in your Mollie dashboard when available for your profile. Google Pay is handled by Mollie as a wallet availability option, so do not add `googlepay` to the `method` filter.
+Enable iDEAL, Apple Pay, Google Pay and credit card in your Mollie dashboard when available for your profile. Visa and Mastercard are handled through Mollie's credit card method. Google Pay is handled by Mollie as a wallet availability option, so do not add `googlepay` to the `method` filter.
 
 ## Firebase service account
 
@@ -67,7 +67,7 @@ Payouts must be connected inside your Mollie account:
 3. Add the restaurant's legal/business details.
 4. Add and verify the bank account/IBAN.
 5. Activate payment methods.
-6. Enable iDEAL, Apple Pay, Google Pay and card where Mollie allows them for the profile.
+6. Enable iDEAL, Apple Pay, Google Pay, Visa and Mastercard where Mollie allows them for the profile.
 7. Set the payout schedule in Mollie.
 
 This cannot be done from website code because it requires the owner's Mollie account, identity checks and bank verification.

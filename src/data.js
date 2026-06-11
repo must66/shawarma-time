@@ -1,4 +1,4 @@
-export const languages = ["ar", "nl", "de"];
+export const languages = ["ar", "nl", "de", "en"];
 
 export const categoryOrder = [
   "shawarma",
