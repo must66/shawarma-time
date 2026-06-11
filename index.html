@@ -12,7 +12,19 @@
     <meta property="og:locale" content="nl_NL" />
     <title>Shawarma Time</title>
     <link rel="canonical" href="https://shawarma-time.netlify.app/" />
-    <link rel="stylesheet" href="src/styles.css?v=20260611-mollie-payments-2" />
+    <script>
+      (function () {
+        var repo = window.location.pathname.indexOf("/shawarma-time") === 0 ? "/shawarma-time" : "";
+        var search = window.location.search;
+        if (search.indexOf("?/") === 0) {
+          var route = search.slice(1).split("&")[0].replace(/\/+$/, "") || "/";
+          var query = search.split("&").slice(1).join("&");
+          var nextUrl = repo + route + (query ? "?" + query : "") + window.location.hash;
+          window.history.replaceState(null, "", nextUrl);
+        }
+      }());
+    </script>
+    <link rel="stylesheet" href="src/styles.css?v=20260611-spa-routing" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -35,7 +47,7 @@
   <body>
     <div class="loader" aria-hidden="true"><span>ST</span></div>
     <header class="site-header">
-      <a class="brand" href="#home" aria-label="Shawarma Time">
+      <a class="brand" href="./" data-route="/" aria-label="Shawarma Time">
         <span class="brand-mark">ST</span>
         <span>
           <strong>Shawarma Time</strong>
@@ -44,13 +56,13 @@
       </a>
       <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
       <nav class="main-nav" aria-label="Main navigation">
-        <a href="#home" data-i18n="nav.home">Home</a>
-        <a href="#menu" data-i18n="nav.menu">Menu</a>
-        <a href="#offers" data-i18n="nav.offers">Offers</a>
-        <a href="#gallery" data-i18n="nav.gallery">Gallery</a>
-        <a href="#about" data-i18n="nav.about">Over ons</a>
-        <a href="#hours" data-i18n="nav.hours">Openingstijden</a>
-        <a href="#contact" data-i18n="nav.contact">Contact</a>
+        <a href="./" data-route="/" data-i18n="nav.home">Home</a>
+        <a href="./menu" data-route="/menu" data-i18n="nav.menu">Menu</a>
+        <a href="./offers" data-route="/offers" data-i18n="nav.offers">Offers</a>
+        <a href="./gallery" data-route="/gallery" data-i18n="nav.gallery">Gallery</a>
+        <a href="./about" data-route="/about" data-i18n="nav.about">Over ons</a>
+        <a href="./hours" data-route="/hours" data-i18n="nav.hours">Openingstijden</a>
+        <a href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
       </nav>
       <div class="language-switcher" aria-label="Language switcher">
         <button type="button" data-lang="ar">AR</button>
@@ -80,7 +92,7 @@
           <p class="hero-slogan" id="heroSlogan"></p>
           <p class="hero-intro" id="heroIntro"></p>
           <div class="hero-actions">
-            <a class="btn primary" href="#menu" data-i18n="section.viewMenu">View Menu</a>
+            <a class="btn primary" href="./menu" data-route="/menu" data-i18n="section.viewMenu">View Menu</a>
             <a class="btn glow" id="heroWhatsapp" target="_blank" rel="noopener">WhatsApp</a>
           </div>
         </div>
@@ -111,7 +123,7 @@
             <p class="eyebrow" data-section-text="offersEyebrow">Dagelijks vers voordeel</p>
             <h2 data-section-text="offersTitle">Offers, deals en banners</h2>
           </div>
-          <a class="btn ghost" href="#contact" data-i18n="section.whatsapp">WhatsApp</a>
+          <a class="btn ghost" href="./contact" data-route="/contact" data-i18n="section.whatsapp">WhatsApp</a>
         </div>
         <div class="offer-grid" id="offerGrid"></div>
       </section>
@@ -230,6 +242,6 @@
       <span data-section-text="footer">Showcase website voor Shawarma Time. Geen online bestellen, geen reserveringen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260611-mollie-payments-2"></script>
+    <script type="module" src="src/app.js?v=20260611-spa-routing"></script>
   </body>
 </html>

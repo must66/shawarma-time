@@ -10,9 +10,45 @@ let unsubscribeRealtime = null;
 let cart = [];
 
 const $ = (selector) => document.querySelector(selector);
+const routeSections = {
+  "/": "home",
+  "/menu": "menu",
+  "/offers": "offers",
+  "/gallery": "gallery",
+  "/about": "about",
+  "/hours": "hours",
+  "/contact": "contact",
+  "/reviews": "reviews",
+  "/socials": "socials"
+};
 
 function t(path) {
   return path.split(".").reduce((value, key) => value?.[key], ui[lang]) || path;
+}
+
+function appBasePath() {
+  return window.location.pathname.startsWith("/shawarma-time") ? "/shawarma-time" : "";
+}
+
+function currentRoute() {
+  const base = appBasePath();
+  let route = window.location.pathname.slice(base.length).replace(/\/+$/, "") || "/";
+  if (!route.startsWith("/")) route = `/${route}`;
+  return routeSections[route] ? route : "/";
+}
+
+function routeUrl(route) {
+  const base = appBasePath();
+  return `${base}${route === "/" ? "/" : route}`;
+}
+
+function scrollToRoute(route = currentRoute(), behavior = "smooth") {
+  const section = document.getElementById(routeSections[route] || "home");
+  if (!section) return;
+  section.scrollIntoView({ behavior, block: "start" });
+  document.querySelectorAll("[data-route]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.route === route);
+  });
 }
 
 function applyLanguage() {
@@ -502,6 +538,7 @@ function render() {
   renderSocials();
   renderContact();
   renderPaymentReturnMessage();
+  window.requestAnimationFrame(() => scrollToRoute(currentRoute(), "auto"));
 }
 
 function renderPaymentReturnMessage() {
@@ -554,6 +591,20 @@ document.querySelectorAll("[data-lang]").forEach((button) => {
     render();
   });
 });
+
+document.querySelectorAll("[data-route]").forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const route = link.dataset.route || "/";
+    if (!routeSections[route]) return;
+    event.preventDefault();
+    window.history.pushState({ route }, "", routeUrl(route));
+    scrollToRoute(route);
+    $(".main-nav")?.classList.remove("open");
+    $(".nav-toggle")?.setAttribute("aria-expanded", "false");
+  });
+});
+
+window.addEventListener("popstate", () => scrollToRoute(currentRoute()));
 
 $(".nav-toggle").addEventListener("click", () => {
   const nav = $(".main-nav");

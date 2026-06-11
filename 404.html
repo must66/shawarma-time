@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shawarma Time</title>
+    <script>
+      (function () {
+        var repo = "/shawarma-time";
+        var location = window.location;
+        var path = location.pathname;
+
+        if (path === repo + "/admin") {
+          location.replace(repo + "/admin/" + location.search + location.hash);
+          return;
+        }
+
+        if (path.indexOf(repo + "/") !== 0) {
+          location.replace(repo + "/" + location.search + location.hash);
+          return;
+        }
+
+        var route = path.slice(repo.length).replace(/\/+$/, "") || "/";
+        var target = repo + "/?" + route + (location.search ? "&" + location.search.slice(1) : "") + location.hash;
+        location.replace(target);
+      }());
+    </script>
+  </head>
+  <body>
+    <p>Opening Shawarma Time...</p>
+  </body>
+</html>
