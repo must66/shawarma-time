@@ -250,7 +250,6 @@ function addToCart(itemId) {
     quantity: 1
   });
   renderCart();
-  openCart();
 }
 
 function priceNumber(price) {
@@ -267,6 +266,7 @@ function renderCart() {
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartCount = $("#cartCount");
   if (cartCount) cartCount.textContent = String(count);
+  $("#cartOpen")?.classList.toggle("has-items", count > 0);
   const title = $("#cartTitle");
   if (title) title.textContent = t("section.cart");
   const list = $("#cartItems");
