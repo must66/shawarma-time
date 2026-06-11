@@ -98,6 +98,7 @@ const adminText = {
     deleted: "Verwijderd",
     imageUploaded: "Afbeelding geupload",
     uploadFailed: "Upload mislukt",
+    cloudinaryMissing: "Cloudinary is niet geconfigureerd. Voeg cloudName en uploadPreset toe in src/cloudinaryConfig.js.",
     loggedOut: "Uitgelogd.",
     loginFailed: "Inloggen mislukt.",
     firebaseMissing: "Firebase-configuratie ontbreekt. Voeg de bestaande Firebase projectconfiguratie toe voordat je inlogt."
@@ -180,6 +181,7 @@ const adminText = {
     deleted: "تم الحذف",
     imageUploaded: "تم رفع الصورة",
     uploadFailed: "فشل رفع الصورة",
+    cloudinaryMissing: "لم يتم إعداد Cloudinary. أضف cloudName و uploadPreset في src/cloudinaryConfig.js.",
     loggedOut: "تم تسجيل الخروج.",
     loginFailed: "فشل تسجيل الدخول.",
     firebaseMissing: "إعدادات Firebase غير موجودة. أضف إعدادات مشروع Firebase قبل تسجيل الدخول."
@@ -262,6 +264,7 @@ const adminText = {
     deleted: "Gelöscht",
     imageUploaded: "Bild hochgeladen",
     uploadFailed: "Upload fehlgeschlagen",
+    cloudinaryMissing: "Cloudinary ist nicht konfiguriert. Füge cloudName und uploadPreset in src/cloudinaryConfig.js hinzu.",
     loggedOut: "Ausgeloggt.",
     loginFailed: "Login fehlgeschlagen.",
     firebaseMissing: "Firebase-Konfiguration fehlt. Füge die bestehende Firebase-Projektkonfiguration hinzu, bevor du dich einloggst."
@@ -292,6 +295,7 @@ function renderRole() {
 function localizedError(error, fallbackKey) {
   const message = error?.message || "";
   if (message.includes("Firebase is not configured")) return tr("firebaseMissing");
+  if (message.includes("Cloudinary is not configured")) return tr("cloudinaryMissing");
   if (message.includes("Username or password") || message.includes("incorrect")) return errorText("badLogin");
   if (message.includes("Admin user was not found")) return errorText("adminNotFound");
   if (message.includes("Enable Email/Password")) return errorText("emailPassword");

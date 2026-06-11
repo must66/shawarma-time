@@ -1,10 +1,10 @@
 import { defaultSiteData, loadSiteData } from "./data.js";
 import { firebaseConfig, firebaseEnabled } from "./firebaseConfig.js";
+import { cloudinaryConfig, cloudinaryEnabled } from "./cloudinaryConfig.js";
 
 const APP_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 const AUTH_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 const FIRESTORE_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-const STORAGE_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 const CONTENT_COLLECTION = "siteContent";
 const CONTENT_DOC = "shawarmaTime";
@@ -34,21 +34,18 @@ export async function getFirebase() {
   if (!firebaseEnabled) return null;
   if (!firebasePromise) {
     firebasePromise = (async () => {
-      const [{ initializeApp }, authMod, firestoreMod, storageMod] = await Promise.all([
+      const [{ initializeApp }, authMod, firestoreMod] = await Promise.all([
         import(APP_URL),
         import(AUTH_URL),
-        import(FIRESTORE_URL),
-        import(STORAGE_URL)
+        import(FIRESTORE_URL)
       ]);
       const app = initializeApp(firebaseConfig);
       return {
         app,
         auth: authMod.getAuth(app),
         db: firestoreMod.getFirestore(app),
-        storage: storageMod.getStorage(app),
         authMod,
-        firestoreMod,
-        storageMod
+        firestoreMod
       };
     })();
   }
@@ -134,16 +131,24 @@ export async function subscribeFirebaseSiteData(callback) {
 
 export async function uploadFirebaseImage(file, folder = "menu") {
   validateImage(file);
-  const firebase = await getFirebase();
-  if (!firebase) throw new Error(CONFIG_ERROR);
-  const safeName = file.name.replace(/[^a-z0-9._-]+/gi, "-").toLowerCase();
-  const path = `${folder}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-  const ref = firebase.storageMod.ref(firebase.storage, path);
-  await firebase.storageMod.uploadBytes(ref, file, {
-    contentType: file.type,
-    cacheControl: "public,max-age=31536000"
+  if (!cloudinaryEnabled) {
+    throw new Error("Cloudinary is not configured. Add cloudName and uploadPreset in src/cloudinaryConfig.js.");
+  }
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", cloudinaryConfig.uploadPreset);
+  formData.append("folder", `${cloudinaryConfig.folder}/${folder}`);
+  formData.append("tags", "shawarma-time,admin-upload");
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, {
+    method: "POST",
+    body: formData
   });
-  return firebase.storageMod.getDownloadURL(ref);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error?.message || `Cloudinary upload failed with status ${response.status}.`);
+  }
+  return payload.secure_url;
 }
 
 async function ensureAdminDoc(uid, username, email) {
