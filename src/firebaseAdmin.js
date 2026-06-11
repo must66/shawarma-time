@@ -16,7 +16,7 @@ const adminLangKey = "shawarma-time-admin-lang";
 
 let siteData = loadSiteData();
 let adminLang = localStorage.getItem(adminLangKey) || "nl";
-if (!["nl", "ar"].includes(adminLang)) adminLang = "nl";
+if (!["nl", "ar", "de"].includes(adminLang)) adminLang = "nl";
 let currentSession;
 
 const adminText = {
@@ -28,29 +28,43 @@ const adminText = {
     password: "Wachtwoord",
     login: "Inloggen",
     logout: "Uitloggen",
+    navDashboard: "Dashboard",
+    navOrders: "Bestellingen",
     navHome: "Home",
     navMenu: "Menu",
     navOffers: "Aanbiedingen",
+    navReviews: "Reviews",
     navBanners: "Banners",
     navGallery: "Galerij",
     navContact: "Contact",
     navHours: "Openingstijden",
+    navSettings: "Instellingen",
+    navNotifications: "Meldingen",
     protectedDashboard: "Beveiligd dashboard",
     viewWebsite: "Website bekijken",
+    dashboardTitle: "Dashboard",
     homeTitle: "Homepagina banners",
+    ordersTitle: "Bestellingen",
+    ordersNote: "Online bestellen is uitgeschakeld voor deze showcase website.",
     menuTitle: "Menu-items",
     offersTitle: "Aanbiedingen",
+    reviewsTitle: "Reviews",
     bannersTitle: "Banners",
     galleryTitle: "Galerij",
     contactTitle: "Restaurantinformatie",
     hoursTitle: "Openingstijden",
+    settingsTitle: "Instellingen",
+    notificationsTitle: "Meldingen",
+    notificationsNote: "Opslaan, verwijderen en uploaden tonen meldingen rechtsboven.",
     saveHome: "Home opslaan",
     saveContact: "Contact opslaan",
+    saveSettings: "Instellingen opslaan",
     saveHours: "Openingstijden opslaan",
     addItem: "Item toevoegen",
     addOffer: "Aanbieding toevoegen",
     addBanner: "Banner toevoegen",
     addPhoto: "Foto toevoegen",
+    addReview: "Review toevoegen",
     role: "Rol",
     title: "Titel",
     slogan: "Slogan",
@@ -68,6 +82,7 @@ const adminText = {
     none: "Geen",
     type: "Type",
     price: "Prijs",
+    rating: "Beoordeling",
     name: "Naam",
     description: "Beschrijving",
     bannerText: "Bannertekst",
@@ -95,29 +110,43 @@ const adminText = {
     password: "كلمة المرور",
     login: "تسجيل الدخول",
     logout: "تسجيل الخروج",
+    navDashboard: "لوحة التحكم",
+    navOrders: "الطلبات",
     navHome: "الرئيسية",
     navMenu: "القائمة",
     navOffers: "العروض",
+    navReviews: "التقييمات",
     navBanners: "البنرات",
     navGallery: "المعرض",
     navContact: "التواصل",
     navHours: "ساعات العمل",
+    navSettings: "الإعدادات",
+    navNotifications: "الإشعارات",
     protectedDashboard: "لوحة إدارة محمية",
     viewWebsite: "عرض الموقع",
+    dashboardTitle: "لوحة التحكم",
     homeTitle: "بنرات الصفحة الرئيسية",
+    ordersTitle: "الطلبات",
+    ordersNote: "نظام الطلبات عبر الإنترنت غير مفعّل في موقع العرض هذا.",
     menuTitle: "عناصر القائمة",
     offersTitle: "العروض والخصومات",
+    reviewsTitle: "التقييمات",
     bannersTitle: "البنرات",
     galleryTitle: "معرض الصور",
     contactTitle: "معلومات المطعم",
     hoursTitle: "ساعات العمل",
+    settingsTitle: "الإعدادات",
+    notificationsTitle: "الإشعارات",
+    notificationsNote: "عمليات الحفظ والحذف ورفع الصور تعرض إشعارات في أعلى الصفحة.",
     saveHome: "حفظ الرئيسية",
     saveContact: "حفظ التواصل",
+    saveSettings: "حفظ الإعدادات",
     saveHours: "حفظ ساعات العمل",
     addItem: "إضافة صنف",
     addOffer: "إضافة عرض",
     addBanner: "إضافة بنر",
     addPhoto: "إضافة صورة",
+    addReview: "إضافة تقييم",
     role: "الدور",
     title: "العنوان",
     slogan: "الشعار",
@@ -135,6 +164,7 @@ const adminText = {
     none: "بدون",
     type: "النوع",
     price: "السعر",
+    rating: "التقييم",
     name: "الاسم",
     description: "الوصف",
     bannerText: "نص البنر",
@@ -153,6 +183,88 @@ const adminText = {
     loggedOut: "تم تسجيل الخروج.",
     loginFailed: "فشل تسجيل الدخول.",
     firebaseMissing: "إعدادات Firebase غير موجودة. أضف إعدادات مشروع Firebase قبل تسجيل الدخول."
+  },
+  de: {
+    brandAdmin: "Admin",
+    brandCms: "Firebase CMS",
+    loginTitle: "Sicherer Admin-Login",
+    username: "Benutzername oder E-Mail",
+    password: "Passwort",
+    login: "Einloggen",
+    logout: "Ausloggen",
+    navDashboard: "Dashboard",
+    navOrders: "Bestellungen",
+    navHome: "Start",
+    navMenu: "Menü",
+    navOffers: "Angebote",
+    navReviews: "Bewertungen",
+    navBanners: "Banner",
+    navGallery: "Galerie",
+    navContact: "Kontakt",
+    navHours: "Öffnungszeiten",
+    navSettings: "Einstellungen",
+    navNotifications: "Benachrichtigungen",
+    protectedDashboard: "Geschütztes Dashboard",
+    viewWebsite: "Website ansehen",
+    dashboardTitle: "Dashboard",
+    homeTitle: "Homepage-Banner",
+    ordersTitle: "Bestellungen",
+    ordersNote: "Online-Bestellungen sind für diese Showcase-Website deaktiviert.",
+    menuTitle: "Menüpunkte",
+    offersTitle: "Angebote",
+    reviewsTitle: "Bewertungen",
+    bannersTitle: "Banner",
+    galleryTitle: "Galerie",
+    contactTitle: "Restaurantinformationen",
+    hoursTitle: "Öffnungszeiten",
+    settingsTitle: "Einstellungen",
+    notificationsTitle: "Benachrichtigungen",
+    notificationsNote: "Speichern, Löschen und Uploads zeigen Benachrichtigungen oben rechts.",
+    saveHome: "Startseite speichern",
+    saveContact: "Kontakt speichern",
+    saveSettings: "Einstellungen speichern",
+    saveHours: "Öffnungszeiten speichern",
+    addItem: "Eintrag hinzufügen",
+    addOffer: "Angebot hinzufügen",
+    addBanner: "Banner hinzufügen",
+    addPhoto: "Foto hinzufügen",
+    addReview: "Bewertung hinzufügen",
+    role: "Rolle",
+    title: "Titel",
+    slogan: "Slogan",
+    intro: "Intro",
+    about: "Über uns",
+    heroImage: "Hero-Bild",
+    phone: "Telefon",
+    address: "Adresse",
+    whatsappMessage: "WhatsApp-Nachricht",
+    instagramUrl: "Instagram-URL",
+    tiktokUrl: "TikTok-URL",
+    facebookUrl: "Facebook-URL",
+    category: "Kategorie",
+    badge: "Badge",
+    none: "Keine",
+    type: "Typ",
+    price: "Preis",
+    rating: "Bewertung",
+    name: "Name",
+    description: "Beschreibung",
+    bannerText: "Bannertext",
+    uploadImage: "Bild hochladen",
+    uploadHint: "Bild hier ablegen oder antippen, um auszuwählen. JPG, PNG, WEBP - max. 5MB",
+    save: "Speichern",
+    delete: "Löschen",
+    saved: "Gespeichert",
+    saveFailed: "Speichern fehlgeschlagen",
+    homepageSaved: "Startseite gespeichert",
+    contactSaved: "Restaurantinformationen gespeichert",
+    hoursSaved: "Öffnungszeiten gespeichert",
+    deleted: "Gelöscht",
+    imageUploaded: "Bild hochgeladen",
+    uploadFailed: "Upload fehlgeschlagen",
+    loggedOut: "Ausgeloggt.",
+    loginFailed: "Login fehlgeschlagen.",
+    firebaseMissing: "Firebase-Konfiguration fehlt. Füge die bestehende Firebase-Projektkonfiguration hinzu, bevor du dich einloggst."
   }
 };
 
@@ -180,14 +292,47 @@ function renderRole() {
 function localizedError(error, fallbackKey) {
   const message = error?.message || "";
   if (message.includes("Firebase is not configured")) return tr("firebaseMissing");
-  if (message.includes("Username or password") || message.includes("incorrect")) return adminLang === "ar" ? "اسم المستخدم أو كلمة المرور غير صحيحة." : "Gebruikersnaam of wachtwoord is onjuist.";
-  if (message.includes("Admin user was not found")) return adminLang === "ar" ? "لم يتم العثور على حساب الإدارة." : "Admin-gebruiker niet gevonden.";
-  if (message.includes("Enable Email/Password")) return adminLang === "ar" ? "فعّل تسجيل الدخول بالبريد وكلمة المرور في Firebase Authentication." : "Schakel e-mail/wachtwoord-login in bij Firebase Authentication.";
-  if (message.includes("Could not reach Firebase")) return adminLang === "ar" ? "تعذر الاتصال بـ Firebase. تحقق من الاتصال والإعدادات." : "Kan Firebase niet bereiken. Controleer de verbinding en instellingen.";
-  if (message.includes("No image selected")) return adminLang === "ar" ? "لم يتم اختيار صورة." : "Geen afbeelding geselecteerd.";
-  if (message.includes("Only JPG")) return adminLang === "ar" ? "يسمح فقط بصور JPG و PNG و WEBP." : "Alleen JPG-, PNG- en WEBP-afbeeldingen zijn toegestaan.";
-  if (message.includes("too large")) return adminLang === "ar" ? "الصورة كبيرة جدًا. الحد الأقصى 5MB." : "Afbeelding is te groot. Maximaal 5MB.";
+  if (message.includes("Username or password") || message.includes("incorrect")) return errorText("badLogin");
+  if (message.includes("Admin user was not found")) return errorText("adminNotFound");
+  if (message.includes("Enable Email/Password")) return errorText("emailPassword");
+  if (message.includes("Could not reach Firebase")) return errorText("firebaseNetwork");
+  if (message.includes("No image selected")) return errorText("noImage");
+  if (message.includes("Only JPG")) return errorText("imageType");
+  if (message.includes("too large")) return errorText("imageSize");
   return message || tr(fallbackKey);
+}
+
+function errorText(key) {
+  const messages = {
+    nl: {
+      badLogin: "Gebruikersnaam of wachtwoord is onjuist.",
+      adminNotFound: "Admin-gebruiker niet gevonden.",
+      emailPassword: "Schakel e-mail/wachtwoord-login in bij Firebase Authentication.",
+      firebaseNetwork: "Kan Firebase niet bereiken. Controleer de verbinding en instellingen.",
+      noImage: "Geen afbeelding geselecteerd.",
+      imageType: "Alleen JPG-, PNG- en WEBP-afbeeldingen zijn toegestaan.",
+      imageSize: "Afbeelding is te groot. Maximaal 5MB."
+    },
+    ar: {
+      badLogin: "اسم المستخدم أو كلمة المرور غير صحيحة.",
+      adminNotFound: "لم يتم العثور على حساب الإدارة.",
+      emailPassword: "فعّل تسجيل الدخول بالبريد وكلمة المرور في Firebase Authentication.",
+      firebaseNetwork: "تعذر الاتصال بـ Firebase. تحقق من الاتصال والإعدادات.",
+      noImage: "لم يتم اختيار صورة.",
+      imageType: "يسمح فقط بصور JPG و PNG و WEBP.",
+      imageSize: "الصورة كبيرة جدًا. الحد الأقصى 5MB."
+    },
+    de: {
+      badLogin: "Benutzername oder Passwort ist falsch.",
+      adminNotFound: "Admin-Benutzer wurde nicht gefunden.",
+      emailPassword: "Aktiviere E-Mail/Passwort-Login in Firebase Authentication.",
+      firebaseNetwork: "Firebase ist nicht erreichbar. Prüfe Verbindung und Einstellungen.",
+      noImage: "Kein Bild ausgewählt.",
+      imageType: "Nur JPG-, PNG- und WEBP-Bilder sind erlaubt.",
+      imageSize: "Bild ist zu groß. Maximal 5MB."
+    }
+  };
+  return messages[adminLang]?.[key] || messages.nl[key] || key;
 }
 
 function note(message) {
@@ -305,6 +450,7 @@ function renderAll() {
   renderCollection("offers", "offersEditor", { type: true, price: true, desc: true, folder: "offers" });
   renderCollection("banners", "bannersEditor", { title: true, text: true, folder: "banners" });
   renderCollection("gallery", "galleryEditor", { title: true, type: true, folder: "gallery" });
+  renderReviews();
   renderContact();
   renderHours();
   setupUploads();
@@ -349,6 +495,37 @@ function renderHours() {
       `).join("")}
     </div>
   `;
+}
+
+function renderReviews() {
+  const root = $("#reviewsEditor");
+  root.innerHTML = (siteData.reviews || []).map((review) => `
+    <article class="admin-card editor-card review-editor" data-id="${review.id}">
+      <div class="editor-fields">
+        ${field("name", tr("name"), review.name || "")}
+        ${field("rating", tr("rating"), review.rating || "")}
+        ${multiInput(review, "text", tr("description"), "textarea")}
+      </div>
+      <div class="editor-actions">
+        <button class="btn primary" type="button" data-save-review>${tr("save")}</button>
+        <button class="btn ghost danger" type="button" data-delete-review>${tr("delete")}</button>
+      </div>
+    </article>
+  `).join("");
+  root.querySelectorAll("[data-save-review]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const card = button.closest(".editor-card");
+      const review = siteData.reviews.find((entry) => entry.id === card.dataset.id);
+      collectFields(card, review);
+      saveContent(tr("saved"));
+    });
+  });
+  root.querySelectorAll("[data-delete-review]").forEach((button) => {
+    button.addEventListener("click", () => {
+      siteData.reviews = siteData.reviews.filter((entry) => entry.id !== button.closest(".editor-card").dataset.id);
+      saveContent(tr("deleted"));
+    });
+  });
 }
 
 function renderCollection(collection, rootId, options) {
@@ -488,7 +665,8 @@ function blankItem(collection) {
     menu: { id, category: "shawarma", badge: "", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },
     offers: { id, type: "daily", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },
     banners: { id, title: { ...blank }, text: { ...blank }, image: baseImage },
-    gallery: { id, type: "food", title: { ...blank }, image: baseImage }
+    gallery: { id, type: "food", title: { ...blank }, image: baseImage },
+    reviews: { id, name: "", rating: "5.0", text: { ...blank } }
   }[collection];
 }
 

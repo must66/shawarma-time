@@ -274,28 +274,28 @@ html[dir="rtl"] input[type="checkbox"]:checked::before {
 }
 
 .admin-lang-switcher {
-  display: inline-grid;
-  grid-auto-flow: column;
+  display: inline-flex;
+  direction: ltr;
   gap: 4px;
   padding: 4px;
-  border: 1px solid rgba(255, 191, 88, .16);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .055);
+  background: rgba(255,255,255,.06);
 }
 
 .admin-lang-switcher button {
   min-width: 42px;
-  min-height: 34px;
+  height: 34px;
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  font-weight: 950;
+  font-weight: 900;
   cursor: pointer;
 }
 
 .admin-lang-switcher button.active {
-  color: #160b06;
   background: linear-gradient(135deg, var(--orange), var(--gold));
+  color: #180604;
 }
 
 .dashboard {
@@ -465,6 +465,10 @@ html[dir="rtl"] .admin-sidebar nav button {
   grid-template-columns: minmax(150px, 210px) 1fr minmax(128px, auto);
   align-items: start;
   gap: 18px;
+}
+
+.editor-card.review-editor {
+  grid-template-columns: 1fr minmax(128px, auto);
 }
 
 .editor-card::before,

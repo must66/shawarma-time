@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Admin | Shawarma Time</title>
-    <link rel="stylesheet" href="../src/styles.css?v=firebase-admin-20260611" />
-    <link rel="stylesheet" href="../src/admin.css?v=firebase-admin-20260611" />
+    <link rel="stylesheet" href="../src/styles.css?v=firebase-admin-20260611-3" />
+    <link rel="stylesheet" href="../src/admin.css?v=firebase-admin-20260611-3" />
   </head>
   <body class="admin-body">
     <main class="admin-shell">
@@ -17,8 +17,9 @@
             <span><strong>Shawarma Time</strong><small data-admin-i18n="brandAdmin">Beheer</small></span>
           </a>
           <div class="admin-lang-switcher">
-            <button type="button" data-admin-lang="ar">AR Arabic</button>
-            <button type="button" data-admin-lang="nl" class="active">NL Dutch</button>
+            <button type="button" data-admin-lang="ar" aria-label="Arabic">AR</button>
+            <button type="button" data-admin-lang="nl" class="active" aria-label="Dutch">NL</button>
+            <button type="button" data-admin-lang="de" aria-label="German">DE</button>
           </div>
         </div>
         <form class="admin-card" id="loginForm">
@@ -37,13 +38,15 @@
             <span><strong>Shawarma Time</strong><small data-admin-i18n="brandCms">Firebase CMS</small></span>
           </a>
           <nav>
-            <button data-panel="homePanel" class="active"><span>H</span><b data-admin-i18n="navHome">Home</b></button>
+            <button data-panel="homePanel" class="active"><span>D</span><b data-admin-i18n="navDashboard">Dashboard</b></button>
+            <button data-panel="ordersPanel"><span>O</span><b data-admin-i18n="navOrders">Bestellingen</b></button>
             <button data-panel="menuPanel"><span>M</span><b data-admin-i18n="navMenu">Menu</b></button>
             <button data-panel="offersPanel"><span>%</span><b data-admin-i18n="navOffers">Aanbiedingen</b></button>
+            <button data-panel="reviewsPanel"><span>R</span><b data-admin-i18n="navReviews">Reviews</b></button>
             <button data-panel="bannersPanel"><span>B</span><b data-admin-i18n="navBanners">Banners</b></button>
             <button data-panel="galleryPanel"><span>G</span><b data-admin-i18n="navGallery">Galerij</b></button>
-            <button data-panel="contactPanel"><span>C</span><b data-admin-i18n="navContact">Contact</b></button>
-            <button data-panel="hoursPanel"><span>T</span><b data-admin-i18n="navHours">Openingstijden</b></button>
+            <button data-panel="contactPanel"><span>S</span><b data-admin-i18n="navSettings">Instellingen</b></button>
+            <button data-panel="notificationsPanel"><span>N</span><b data-admin-i18n="navNotifications">Meldingen</b></button>
           </nav>
           <button class="btn ghost" id="logoutBtn" type="button" data-admin-i18n="logout">Uitloggen</button>
         </aside>
@@ -57,13 +60,23 @@
             </div>
             <div class="admin-actions">
               <span id="saveStatus"></span>
+              <div class="admin-lang-switcher">
+                <button type="button" data-admin-lang="ar" aria-label="Arabic">AR</button>
+                <button type="button" data-admin-lang="nl" class="active" aria-label="Dutch">NL</button>
+                <button type="button" data-admin-lang="de" aria-label="German">DE</button>
+              </div>
               <a class="btn ghost" href="../index.html" data-admin-i18n="viewWebsite">Website bekijken</a>
             </div>
           </header>
 
           <section id="homePanel" class="admin-panel active">
-            <div class="panel-head"><h2 data-admin-i18n="homeTitle">Homepagina banners</h2><button class="btn primary" id="saveHomeBtn" type="button" data-admin-i18n="saveHome">Home opslaan</button></div>
+            <div class="panel-head"><h2 data-admin-i18n="dashboardTitle">Dashboard</h2><button class="btn primary" id="saveHomeBtn" type="button" data-admin-i18n="saveHome">Home opslaan</button></div>
             <form class="settings-grid" id="homeForm"></form>
+          </section>
+
+          <section id="ordersPanel" class="admin-panel">
+            <div class="panel-head"><h2 data-admin-i18n="ordersTitle">Bestellingen</h2></div>
+            <article class="admin-card"><p data-admin-i18n="ordersNote">Online bestellen is uitgeschakeld voor deze showcase website.</p></article>
           </section>
 
           <section id="menuPanel" class="admin-panel">
@@ -74,6 +87,11 @@
           <section id="offersPanel" class="admin-panel">
             <div class="panel-head"><h2 data-admin-i18n="offersTitle">Aanbiedingen</h2><button class="btn primary" data-add="offers" type="button" data-admin-i18n="addOffer">Aanbieding toevoegen</button></div>
             <div class="editor-list" id="offersEditor"></div>
+          </section>
+
+          <section id="reviewsPanel" class="admin-panel">
+            <div class="panel-head"><h2 data-admin-i18n="reviewsTitle">Reviews</h2><button class="btn primary" data-add="reviews" type="button" data-admin-i18n="addReview">Review toevoegen</button></div>
+            <div class="editor-list" id="reviewsEditor"></div>
           </section>
 
           <section id="bannersPanel" class="admin-panel">
@@ -87,19 +105,21 @@
           </section>
 
           <section id="contactPanel" class="admin-panel">
-            <div class="panel-head"><h2 data-admin-i18n="contactTitle">Restaurantinformatie</h2><button class="btn primary" id="saveContactBtn" type="button" data-admin-i18n="saveContact">Contact opslaan</button></div>
+            <div class="panel-head"><h2 data-admin-i18n="settingsTitle">Instellingen</h2><button class="btn primary" id="saveContactBtn" type="button" data-admin-i18n="saveSettings">Instellingen opslaan</button></div>
             <form class="settings-grid" id="contactForm"></form>
-          </section>
-
-          <section id="hoursPanel" class="admin-panel">
             <div class="panel-head"><h2 data-admin-i18n="hoursTitle">Openingstijden</h2><button class="btn primary" id="saveHoursBtn" type="button" data-admin-i18n="saveHours">Openingstijden opslaan</button></div>
             <form class="settings-grid" id="hoursForm"></form>
+          </section>
+
+          <section id="notificationsPanel" class="admin-panel">
+            <div class="panel-head"><h2 data-admin-i18n="notificationsTitle">Meldingen</h2></div>
+            <article class="admin-card"><p data-admin-i18n="notificationsNote">Opslaan, verwijderen en uploaden tonen meldingen rechtsboven.</p></article>
           </section>
         </div>
       </section>
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=firebase-admin-20260611"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=firebase-admin-20260611-3"></script>
   </body>
 </html>
