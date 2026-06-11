@@ -22,6 +22,7 @@ if (!["nl", "ar", "de"].includes(adminLang)) adminLang = "nl";
 let currentSession;
 let orders = [];
 let unsubscribeOrders = null;
+let ordersError = "";
 
 const adminText = {
   nl: {
@@ -50,6 +51,7 @@ const adminText = {
     homeTitle: "Homepagina banners",
     ordersTitle: "Bestellingen",
     ordersNote: "Nieuwe bestellingen verschijnen hier automatisch.",
+    ordersError: "Bestellingen konden niet worden geladen:",
     noOrders: "Nog geen bestellingen.",
     orderCustomer: "Klant",
     orderPhone: "Telefoon",
@@ -151,6 +153,7 @@ const adminText = {
     homeTitle: "بنرات الصفحة الرئيسية",
     ordersTitle: "الطلبات",
     ordersNote: "الطلبات الجديدة تظهر هنا تلقائياً.",
+    ordersError: "تعذر تحميل الطلبات:",
     noOrders: "لا توجد طلبات بعد.",
     orderCustomer: "الزبون",
     orderPhone: "الهاتف",
@@ -252,6 +255,7 @@ const adminText = {
     homeTitle: "Homepage-Banner",
     ordersTitle: "Bestellungen",
     ordersNote: "Neue Bestellungen erscheinen hier automatisch.",
+    ordersError: "Bestellungen konnten nicht geladen werden:",
     noOrders: "Noch keine Bestellungen.",
     orderCustomer: "Kunde",
     orderPhone: "Telefon",
@@ -526,7 +530,11 @@ function renderAll() {
 async function startOrdersFeed() {
   if (unsubscribeOrders || !isFirebaseConfigured()) return;
   unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders) => {
+    ordersError = "";
     orders = incomingOrders;
+    renderOrders();
+  }, (error) => {
+    ordersError = error?.message || String(error);
     renderOrders();
   });
 }
@@ -534,6 +542,10 @@ async function startOrdersFeed() {
 function renderOrders() {
   const root = $("#ordersList");
   if (!root) return;
+  if (ordersError) {
+    root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("ordersError")} ${escapeHtml(ordersError)}</p></article>`;
+    return;
+  }
   if (!orders.length) {
     root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("noOrders")}</p></article>`;
     return;

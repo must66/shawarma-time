@@ -354,6 +354,7 @@ async function submitCart(event) {
       paymentMethod
     };
     const orderId = await createFirebaseOrder(orderPayload);
+    notifyOrderCreated(orderId, orderPayload);
     if (paymentMethod === "stripe") {
       setStatus(t("section.stripeRedirect"), false);
       await redirectToStripeCheckout(orderId, orderPayload);
@@ -369,6 +370,27 @@ async function submitCart(event) {
     setStatus(error?.message || t("section.orderError"), true);
   } finally {
     $("#submitOrderBtn").disabled = false;
+  }
+}
+
+async function notifyOrderCreated(orderId, orderPayload) {
+  const endpoint = paymentConfig.orderNotificationEndpoint;
+  if (!endpoint) return;
+  try {
+    await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        orderId,
+        order: {
+          ...orderPayload,
+          subtotal: cartTotal(),
+          currency: "EUR"
+        }
+      })
+    });
+  } catch (error) {
+    console.warn("Order notification could not be sent.", error);
   }
 }
 

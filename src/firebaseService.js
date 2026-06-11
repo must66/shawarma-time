@@ -168,7 +168,7 @@ export async function createFirebaseOrder(order) {
   return ref.id;
 }
 
-export async function subscribeFirebaseOrders(callback) {
+export async function subscribeFirebaseOrders(callback, onError) {
   const firebase = await getFirebase();
   if (!firebase) return () => {};
   const queryRef = firebase.firestoreMod.query(
@@ -176,9 +176,16 @@ export async function subscribeFirebaseOrders(callback) {
     firebase.firestoreMod.orderBy("createdAt", "desc"),
     firebase.firestoreMod.limit(80)
   );
-  return firebase.firestoreMod.onSnapshot(queryRef, (snapshot) => {
-    callback(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-  });
+  return firebase.firestoreMod.onSnapshot(
+    queryRef,
+    (snapshot) => {
+      callback(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    },
+    (error) => {
+      if (onError) onError(error);
+      else console.error(error);
+    }
+  );
 }
 
 export async function updateFirebaseOrderStatus(orderId, status) {
