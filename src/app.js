@@ -509,18 +509,65 @@ function renderOffers() {
 }
 
 function renderGallery() {
-  $("#galleryGrid").innerHTML = data.gallery.map((photo) => `
-    <figure>
-      <button type="button" class="gallery-button" data-image="${encodeAttr(photo.image)}" data-caption="${encodeAttr(localized(photo.title, lang))}" aria-label="${t("section.fullscreen")}">
+  $("#galleryGrid").innerHTML = data.gallery.map((photo, index) => {
+    const item = galleryMenuItem(photo, index);
+    if (!item) return "";
+    const itemName = localized(item.name, lang);
+    return `
+    <figure class="gallery-card" data-gallery-item="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(`${t("section.orderNow")} ${itemName}`)}">
+      <div class="gallery-button" data-image="${encodeAttr(photo.image)}" data-caption="${encodeAttr(localized(photo.title, lang))}">
         <img src="${photo.image}" alt="${localized(photo.title, lang)}" loading="lazy" decoding="async" />
-      </button>
-      <figcaption>${localized(photo.title, lang)}</figcaption>
+      </div>
+      <figcaption>
+        <span>${localized(photo.title, lang)}</span>
+        <strong>${itemName}</strong>
+        <em>${item.price}</em>
+        <button class="btn tiny gallery-order-button" type="button" data-gallery-add="${encodeAttr(item.id)}">${t("section.orderNow")}</button>
+      </figcaption>
     </figure>
-  `).join("");
+  `;
+  }).join("");
 
-  $("#galleryGrid").querySelectorAll(".gallery-button").forEach((button) => {
-    button.addEventListener("click", () => openLightbox(button.dataset.image, button.dataset.caption));
+  $("#galleryGrid").querySelectorAll("[data-gallery-item]").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("[data-gallery-add]")) return;
+      addToCart(card.dataset.galleryItem);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      addToCart(card.dataset.galleryItem);
+    });
   });
+
+  $("#galleryGrid").querySelectorAll("[data-gallery-add]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      addToCart(button.dataset.galleryAdd);
+    });
+  });
+}
+
+function galleryMenuItem(photo, index) {
+  const linkedId = photo.menuItemId || photo.itemId || photo.menu_item_id || photo.menu_item;
+  const linkedItem = linkedId ? data.menu.find((item) => item.id === linkedId) : null;
+  if (linkedItem) return linkedItem;
+
+  const title = normalizedText(localized(photo.title, lang));
+  const titleMatch = data.menu.find((item) => {
+    const names = Object.values(item.name || {}).map(normalizedText);
+    return names.some((name) => title.includes(name) || name.includes(title));
+  });
+  if (titleMatch) return titleMatch;
+
+  const typeMatch = data.menu.find((item) => item.category === photo.type);
+  if (typeMatch) return typeMatch;
+
+  return data.menu[index % data.menu.length] || data.menu[0];
+}
+
+function normalizedText(value) {
+  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function openLightbox(src, caption) {

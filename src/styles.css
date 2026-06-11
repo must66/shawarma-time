@@ -654,6 +654,17 @@ body.no-glow .loader span {
   overflow: hidden;
   background: var(--panel-solid);
 }
+.gallery-card {
+  cursor: pointer;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+.gallery-card:hover,
+.gallery-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(255,191,88,.42);
+  box-shadow: 0 22px 70px rgba(0,0,0,.38), 0 0 30px rgba(255,122,26,.16);
+  outline: 0;
+}
 .gallery-grid figure:first-child { grid-row: span 2; }
 .gallery-grid figure:first-child img { height: 494px; }
 .gallery-button {
@@ -663,16 +674,40 @@ body.no-glow .loader span {
   border: 0;
   background: transparent;
   color: inherit;
-  cursor: zoom-in;
+  cursor: pointer;
 }
 .gallery-grid figcaption {
   position: absolute;
   inset-inline: 14px;
   bottom: 14px;
-  border-radius: 999px;
-  padding: 10px 12px;
-  background: rgba(9,5,4,.76);
+  display: grid;
+  gap: 6px;
+  border-radius: 16px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(9,5,4,.88), rgba(29,10,7,.82));
+  border: 1px solid rgba(255,191,88,.16);
+  box-shadow: 0 14px 42px rgba(0,0,0,.32);
+}
+.gallery-grid figcaption span {
+  color: var(--gold);
+  font-size: .78rem;
   font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.gallery-grid figcaption strong {
+  color: #fff;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+}
+.gallery-grid figcaption em {
+  color: var(--soft);
+  font-style: normal;
+  font-weight: 850;
+}
+.gallery-order-button {
+  width: max-content;
+  margin-top: 4px;
+  min-height: 40px;
 }
 
 .about-section {
