@@ -161,6 +161,7 @@ export async function createFirebaseOrder(order) {
   const ref = await firebase.firestoreMod.addDoc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION), {
     ...cleanOrder,
     status: "new",
+    orderStatus: "new",
     createdAt: firebase.firestoreMod.serverTimestamp(),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   });
@@ -190,6 +191,7 @@ export async function updateFirebaseOrderStatus(orderId, status) {
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
     status,
+    orderStatus: status,
     updatedAt: firebase.firestoreMod.serverTimestamp()
   });
 }
@@ -260,12 +262,15 @@ function normalizeOrder(order) {
   };
   if (!customer.name || !customer.phone) throw new Error("Customer name and phone are required.");
   const subtotal = items.reduce((sum, item) => sum + item.priceValue * item.quantity, 0);
+  const paymentMethod = ["cash", "restaurant", "stripe"].includes(order?.paymentMethod) ? order.paymentMethod : "cash";
   return {
     customer,
     items,
     itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
     subtotal: Number(subtotal.toFixed(2)),
     currency: "EUR",
+    paymentMethod,
+    paymentStatus: paymentMethod === "stripe" ? "pending" : "unpaid",
     source: "website"
   };
 }

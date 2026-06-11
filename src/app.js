@@ -1,6 +1,7 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
 import { createFirebaseOrder } from "./firebaseService.js";
+import { paymentConfig } from "./paymentConfig.js";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
@@ -295,6 +296,10 @@ function renderCart() {
   $("#orderNameLabel").textContent = t("section.customerName");
   $("#orderPhoneLabel").textContent = t("section.customerPhone");
   $("#orderNotesLabel").textContent = t("section.orderNotes");
+  $("#paymentMethodLabel").textContent = t("section.paymentMethod");
+  $("#paymentCashLabel").textContent = t("section.cashOnDelivery");
+  $("#paymentRestaurantLabel").textContent = t("section.payAtRestaurant");
+  $("#paymentStripeLabel").textContent = t("section.stripePayment");
   $("#submitOrderBtn").textContent = t("section.submitOrder");
   $("#cartClose").setAttribute("aria-label", t("section.closeCart"));
   list.querySelectorAll("[data-cart-inc]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartInc, 1)));
@@ -335,17 +340,25 @@ async function submitCart(event) {
   }
   const cartForm = event.currentTarget;
   const form = new FormData(cartForm);
+  const paymentMethod = form.get("paymentMethod") || "cash";
   setStatus(t("section.submitOrder"), false);
   $("#submitOrderBtn").disabled = true;
   try {
-    await createFirebaseOrder({
+    const orderPayload = {
       items: cart,
       customer: {
         name: form.get("name"),
         phone: form.get("phone"),
         notes: form.get("notes")
-      }
-    });
+      },
+      paymentMethod
+    };
+    const orderId = await createFirebaseOrder(orderPayload);
+    if (paymentMethod === "stripe") {
+      setStatus(t("section.stripeRedirect"), false);
+      await redirectToStripeCheckout(orderId, orderPayload);
+      return;
+    }
     cart = [];
     cartForm.reset();
     renderCart();
@@ -357,6 +370,30 @@ async function submitCart(event) {
   } finally {
     $("#submitOrderBtn").disabled = false;
   }
+}
+
+async function redirectToStripeCheckout(orderId, orderPayload) {
+  const endpoint = paymentConfig.stripeCheckoutEndpoint;
+  if (!endpoint) throw new Error(t("section.stripeUnavailable"));
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      orderId,
+      order: {
+        ...orderPayload,
+        subtotal: cartTotal(),
+        currency: "EUR"
+      },
+      successUrl: `${window.location.origin}${window.location.pathname}?payment=success&orderId=${encodeURIComponent(orderId)}`,
+      cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel&orderId=${encodeURIComponent(orderId)}`
+    })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.url) {
+    throw new Error(payload.error || t("section.stripeUnavailable"));
+  }
+  window.location.href = payload.url;
 }
 
 function setupReveal() {
@@ -381,6 +418,14 @@ function render() {
   renderReviews();
   renderSocials();
   renderContact();
+  renderPaymentReturnMessage();
+}
+
+function renderPaymentReturnMessage() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get("payment");
+  if (payment === "success") setStatus(t("section.paymentSuccess"), false);
+  if (payment === "cancel") setStatus(t("section.paymentCancel"), true);
 }
 
 async function refreshDataAndRender() {

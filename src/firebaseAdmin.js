@@ -57,6 +57,14 @@ const adminText = {
     orderItems: "Items",
     orderTotal: "Totaal",
     orderStatus: "Status",
+    paymentMethod: "Betaalmethode",
+    paymentStatus: "Betaalstatus",
+    paymentCash: "Contant",
+    paymentRestaurant: "In restaurant",
+    paymentStripe: "Stripe",
+    paymentPaid: "Betaald",
+    paymentPending: "In afwachting",
+    paymentUnpaid: "Niet betaald",
     orderNew: "Nieuw",
     orderPreparing: "In bereiding",
     orderCompleted: "Afgerond",
@@ -150,6 +158,14 @@ const adminText = {
     orderItems: "الأصناف",
     orderTotal: "المجموع",
     orderStatus: "الحالة",
+    paymentMethod: "طريقة الدفع",
+    paymentStatus: "حالة الدفع",
+    paymentCash: "نقداً",
+    paymentRestaurant: "في المطعم",
+    paymentStripe: "Stripe",
+    paymentPaid: "مدفوع",
+    paymentPending: "قيد الانتظار",
+    paymentUnpaid: "غير مدفوع",
     orderNew: "جديد",
     orderPreparing: "قيد التحضير",
     orderCompleted: "مكتمل",
@@ -243,6 +259,14 @@ const adminText = {
     orderItems: "Artikel",
     orderTotal: "Summe",
     orderStatus: "Status",
+    paymentMethod: "Zahlungsmethode",
+    paymentStatus: "Zahlungsstatus",
+    paymentCash: "Bar",
+    paymentRestaurant: "Im Restaurant",
+    paymentStripe: "Stripe",
+    paymentPaid: "Bezahlt",
+    paymentPending: "Ausstehend",
+    paymentUnpaid: "Nicht bezahlt",
     orderNew: "Neu",
     orderPreparing: "In Vorbereitung",
     orderCompleted: "Abgeschlossen",
@@ -521,12 +545,14 @@ function renderOrders() {
           <strong>#${order.id.slice(0, 8).toUpperCase()}</strong>
           <span>${formatOrderDate(order.createdAt)}</span>
         </div>
-        <mark class="order-status ${escapeAttr(order.status || "new")}">${statusLabel(order.status || "new")}</mark>
+        <mark class="order-status ${escapeAttr(order.orderStatus || order.status || "new")}">${statusLabel(order.orderStatus || order.status || "new")}</mark>
       </div>
       <div class="order-meta">
         <p><span>${tr("orderCustomer")}</span><b>${escapeHtml(order.customer?.name || "")}</b></p>
         <p><span>${tr("orderPhone")}</span><b>${escapeHtml(order.customer?.phone || "")}</b></p>
         <p><span>${tr("orderTotal")}</span><b>${formatOrderTotal(order.subtotal)}</b></p>
+        <p><span>${tr("paymentMethod")}</span><b>${paymentMethodLabel(order.paymentMethod)}</b></p>
+        <p><span>${tr("paymentStatus")}</span><b>${paymentStatusLabel(order.paymentStatus)}</b></p>
       </div>
       <div class="order-items">
         <span>${tr("orderItems")}</span>
@@ -536,9 +562,9 @@ function renderOrders() {
       <label class="order-status-field">
         <span>${tr("orderStatus")}</span>
         <select data-order-status="${order.id}">
-          ${statusOption("new", order.status)}
-          ${statusOption("preparing", order.status)}
-          ${statusOption("completed", order.status)}
+          ${statusOption("new", order.orderStatus || order.status)}
+          ${statusOption("preparing", order.orderStatus || order.status)}
+          ${statusOption("completed", order.orderStatus || order.status)}
         </select>
       </label>
     </article>
@@ -565,6 +591,16 @@ function statusOption(value, selected) {
 function statusLabel(status) {
   const keys = { new: "orderNew", preparing: "orderPreparing", completed: "orderCompleted" };
   return tr(keys[status] || "orderNew");
+}
+
+function paymentMethodLabel(method) {
+  const keys = { cash: "paymentCash", restaurant: "paymentRestaurant", stripe: "paymentStripe" };
+  return tr(keys[method] || "paymentCash");
+}
+
+function paymentStatusLabel(status) {
+  const keys = { paid: "paymentPaid", pending: "paymentPending", unpaid: "paymentUnpaid" };
+  return tr(keys[status] || "paymentUnpaid");
 }
 
 function formatOrderTotal(value) {
