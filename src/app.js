@@ -333,7 +333,8 @@ async function submitCart(event) {
     setStatus(t("section.cartEmpty"), true);
     return;
   }
-  const form = new FormData(event.currentTarget);
+  const cartForm = event.currentTarget;
+  const form = new FormData(cartForm);
   setStatus(t("section.submitOrder"), false);
   $("#submitOrderBtn").disabled = true;
   try {
@@ -346,7 +347,7 @@ async function submitCart(event) {
       }
     });
     cart = [];
-    event.currentTarget.reset();
+    cartForm.reset();
     renderCart();
     closeCart();
     setStatus(t("section.orderSuccess"), false);
