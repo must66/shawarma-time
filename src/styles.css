@@ -808,7 +808,8 @@ body.no-glow .loader span {
 .cart-drawer {
   position: fixed;
   inset-block: 0;
-  inset-inline-end: 0;
+  right: 0;
+  left: auto;
   z-index: 80;
   width: min(100vw, 440px);
   display: grid;
@@ -824,8 +825,8 @@ body.no-glow .loader span {
   transition: transform .24s ease;
 }
 [dir="rtl"] .cart-drawer {
-  inset-inline-end: 0;
-  inset-inline-start: auto;
+  right: 0;
+  left: auto;
   border-inline-start: 1px solid rgba(255,191,88,.2);
   border-inline-end: 0;
   box-shadow: -22px 0 70px rgba(0,0,0,.42);
