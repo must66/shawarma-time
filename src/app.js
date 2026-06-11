@@ -8,6 +8,22 @@ let activeCategory = "all";
 let data = loadSiteData();
 let unsubscribeRealtime = null;
 let cart = [];
+const isProduction = !["localhost", "127.0.0.1", ""].includes(window.location.hostname);
+
+if (isProduction) {
+  ["debug", "log", "info", "warn", "error"].forEach((method) => {
+    console[method] = () => {};
+  });
+  window.addEventListener("error", (event) => {
+    event.preventDefault();
+    setStatus("", false);
+    return true;
+  });
+  window.addEventListener("unhandledrejection", (event) => {
+    event.preventDefault();
+    setStatus("", false);
+  });
+}
 
 const $ = (selector) => document.querySelector(selector);
 const routeSections = {
@@ -266,9 +282,9 @@ const orderingUi = {
       submitOrder: "Submit order",
       orderSuccess: "Thank you. Your order has been received.",
       mollieRedirect: "You will be redirected to Mollie for secure payment.",
-      mollieUnavailable: "Mollie payment is not configured yet. Choose cash or pay at restaurant.",
-      mollieMissingBackend: "Mollie payment only works on the Netlify production URL with serverless functions.",
-      mollieMissingConfig: "Mollie is not fully configured. Check MOLLIE_API_KEY and FIREBASE_SERVICE_ACCOUNT.",
+      mollieUnavailable: "Online payment is temporarily unavailable. Choose cash or pay at restaurant.",
+      mollieMissingBackend: "Online payment is temporarily unavailable. Choose cash or pay at restaurant.",
+      mollieMissingConfig: "Online payment is temporarily unavailable. Choose cash or pay at restaurant.",
       paymentSuccess: "Payment received. Your order has been sent.",
       paymentCancel: "Online payment was cancelled. You can try again or choose another payment method.",
       orderError: "Could not send order.",
@@ -796,8 +812,7 @@ async function submitCart(event) {
     cartForm.reset();
     renderCart();
   } catch (error) {
-    console.error(error);
-    setStatus(error?.message || t("section.orderError"), true);
+    setStatus(customerSafeErrorMessage(error), true);
   } finally {
     $("#submitOrderBtn").disabled = false;
   }
@@ -905,8 +920,8 @@ async function notifyOrderCreated(orderId, orderPayload, total = cartTotal()) {
         }
       })
     });
-  } catch (error) {
-    console.warn("Order notification could not be sent.", error);
+  } catch {
+    // Notification failures must not interrupt or expose technical details to customers.
   }
 }
 
@@ -981,10 +996,9 @@ async function assertMollieReady() {
   }
   if (!response.ok) throw new Error(t("section.mollieMissingBackend"));
   const status = await response.json().catch(() => null);
-  const missing = [];
-  if (!status?.mollieApiKey) missing.push("MOLLIE_API_KEY");
-  if (!status?.firebaseServiceAccount) missing.push("FIREBASE_SERVICE_ACCOUNT");
-  if (missing.length) throw new Error(`${t("section.mollieMissingConfig")} Missing: ${missing.join(", ")}`);
+  if (!status?.mollieApiKey || !status?.firebaseServiceAccount) {
+    throw new Error(t("section.mollieMissingConfig"));
+  }
 }
 
 async function assertStripeReady() {
@@ -998,12 +1012,9 @@ async function assertStripeReady() {
   }
   if (!response.ok) throw new Error(t("section.stripeMissingBackend"));
   const status = await response.json().catch(() => null);
-  const missing = [];
-  if (!status?.stripeSecretKey) missing.push("STRIPE_SECRET_KEY");
-  if (!status?.stripePublishableKey) missing.push("STRIPE_PUBLISHABLE_KEY");
-  if (!status?.stripeWebhookSecret) missing.push("STRIPE_WEBHOOK_SECRET");
-  if (!status?.firebaseServiceAccount) missing.push("FIREBASE_SERVICE_ACCOUNT");
-  if (missing.length) throw new Error(`${t("section.stripeMissingConfig")} Missing: ${missing.join(", ")}`);
+  if (!status?.stripeSecretKey || !status?.stripePublishableKey || !status?.stripeWebhookSecret || !status?.firebaseServiceAccount) {
+    throw new Error(t("section.stripeMissingConfig"));
+  }
 }
 
 function setupReveal() {
@@ -1069,14 +1080,12 @@ function getPendingOnlineOrder() {
 }
 
 async function refreshDataAndRender() {
-  setStatus("Loading fresh menu and offers...", false);
   try {
     data = await fetchPublicSiteData();
     setStatus("", false);
-  } catch (error) {
-    console.warn("Supabase unavailable, using local fallback.", error);
+  } catch {
     data = loadSiteData();
-    setStatus("Could not load live content. Showing saved fallback content.", true);
+    setStatus("", false);
   }
   render();
 }
@@ -1098,6 +1107,14 @@ function setStatus(message, isError) {
   status.textContent = message;
   status.classList.toggle("error", Boolean(isError));
   status.classList.toggle("visible", Boolean(message));
+}
+
+function customerSafeErrorMessage(error) {
+  const message = String(error?.message || "");
+  if (/missing|configured|config|api[_ -]?key|secret|service[_ -]?account|serverless|netlify|firebase|supabase|stack|referenceerror|typeerror|syntaxerror/i.test(message)) {
+    return t("section.orderError");
+  }
+  return message || t("section.orderError");
 }
 
 function encodeAttr(value) {
