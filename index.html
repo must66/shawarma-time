@@ -10,8 +10,10 @@
     <meta property="og:description" content="Syrian and Lebanese luxury shawarma, grill and halal food showcase in Venlo." />
     <meta property="og:type" content="restaurant.restaurant" />
     <meta property="og:locale" content="nl_NL" />
+    <meta property="og:url" content="https://must66.github.io/shawarma-time/" />
+    <meta property="og:image" content="https://must66.github.io/shawarma-time/og-image.png" />
     <title>Shawarma Time</title>
-    <link rel="canonical" href="https://shawarma-time.netlify.app/" />
+    <link rel="canonical" href="https://must66.github.io/shawarma-time/" />
     <script>
       (function () {
         var repo = window.location.pathname.indexOf("/shawarma-time") === 0 ? "/shawarma-time" : "";
@@ -24,7 +26,7 @@
         }
       }());
     </script>
-    <link rel="stylesheet" href="src/styles.css?v=20260611-order-flow" />
+    <link rel="stylesheet" href="src/styles.css?v=20260611-production-ready" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -61,6 +63,7 @@
         <a href="./offers" data-route="/offers" data-i18n="nav.offers">Offers</a>
         <a href="./gallery" data-route="/gallery" data-i18n="nav.gallery">Gallery</a>
         <a href="./checkout" data-route="/checkout" data-i18n="section.checkout">Checkout</a>
+        <a href="./track" data-route="/track" data-i18n="section.trackOrder">Track</a>
         <a href="./about" data-route="/about" data-i18n="nav.about">Over ons</a>
         <a href="./hours" data-route="/hours" data-i18n="nav.hours">Openingstijden</a>
         <a href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
@@ -69,6 +72,7 @@
         <button type="button" data-lang="ar">AR</button>
         <button type="button" data-lang="nl" class="active">NL</button>
         <button type="button" data-lang="de">DE</button>
+        <button type="button" data-lang="en">EN</button>
       </div>
     </header>
 
@@ -115,6 +119,22 @@
                 <label><span id="checkoutNameLabel">Naam</span><input name="name" autocomplete="name" required /></label>
                 <label><span id="checkoutPhoneLabel">Telefoon</span><input name="phone" autocomplete="tel" required /></label>
               </div>
+              <div class="form-row">
+                <label><span id="checkoutEmailLabel">E-mail</span><input name="email" type="email" autocomplete="email" /></label>
+                <label><span id="checkoutTimeLabel">Gewenste tijd</span><input name="preferredTime" type="time" /></label>
+              </div>
+              <fieldset class="fulfillment-methods">
+                <legend id="checkoutFulfillmentLabel">Afhalen of bezorgen</legend>
+                <label>
+                  <input type="radio" name="fulfillment" value="pickup" checked />
+                  <span id="pickupLabel">Afhalen</span>
+                </label>
+                <label>
+                  <input type="radio" name="fulfillment" value="delivery" />
+                  <span id="deliveryLabel">Bezorgen</span>
+                </label>
+              </fieldset>
+              <label><span id="checkoutAddressLabel">Adres</span><input name="address" autocomplete="street-address" /></label>
               <label><span id="checkoutNotesLabel">Opmerking</span><textarea name="notes"></textarea></label>
               <fieldset class="payment-methods checkout-payments">
                 <legend id="checkoutPaymentMethodLabel">Betaalmethode</legend>
@@ -155,13 +175,46 @@
           <h2 data-i18n="section.thankYou">Thank you for your order</h2>
           <div class="success-details">
             <p><span data-i18n="section.orderNumber">Order number</span><strong id="successOrderNumber">-</strong></p>
+            <p><span data-i18n="section.paymentStatus">Payment status</span><strong id="successPaymentStatus">-</strong></p>
             <p><span data-i18n="section.prepTime">Preparation time</span><strong id="successPrepTime">20-30 min</strong></p>
+            <p><span data-i18n="section.pickupDelivery">Pickup / delivery</span><strong id="successFulfillment">-</strong></p>
           </div>
+          <div class="success-summary" id="successSummary"></div>
           <p id="successMessage"></p>
           <div class="hero-actions">
+            <a class="btn primary" href="./track" data-route="/track" data-i18n="section.trackOrder">Track order</a>
             <a class="btn primary" href="./menu" data-route="/menu" data-i18n="section.backToMenu">Back to menu</a>
-            <a class="btn ghost" href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
+            <a class="btn ghost" id="successPhoneBtn" href="tel:0638081382" data-i18n="section.callRestaurant">Call restaurant</a>
           </div>
+        </div>
+      </section>
+
+      <section id="failed" class="section order-success-section reveal">
+        <div class="order-success-card failed">
+          <p class="eyebrow" data-i18n="section.paymentFailed">Payment failed</p>
+          <h2 data-i18n="section.paymentFailedTitle">Payment was not completed</h2>
+          <p data-i18n="section.paymentFailedText">You can try again or choose another payment method.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="./checkout" data-route="/checkout" data-i18n="section.retryPayment">Try again</a>
+            <a class="btn ghost" href="./menu" data-route="/menu" data-i18n="section.backToMenu">Back to menu</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="track" class="section track-section reveal">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-i18n="section.trackEyebrow">Order status</p>
+            <h2 data-i18n="section.trackTitle">Track your order</h2>
+          </div>
+        </div>
+        <div class="track-card">
+          <form class="track-form" id="trackForm">
+            <label><span data-i18n="section.orderNumber">Order number</span><input name="orderNumber" placeholder="ST-123ABC" /></label>
+            <button class="btn primary" type="submit" data-i18n="section.trackOrder">Track order</button>
+          </form>
+          <div class="track-steps" id="trackSteps"></div>
+          <p class="form-note" id="trackNote"></p>
         </div>
       </section>
 
@@ -245,6 +298,7 @@
             <p><strong data-i18n="section.phone">Telefoon</strong><a id="contactPhone"></a></p>
           </div>
           <a class="btn primary" id="whatsappBtn" target="_blank" rel="noopener" data-i18n="section.whatsapp">WhatsApp</a>
+          <a class="btn ghost" id="directionsBtn" target="_blank" rel="noopener" data-i18n="section.directions">Directions</a>
         </div>
         <iframe
           class="map"
@@ -291,6 +345,6 @@
       <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260611-order-flow"></script>
+    <script type="module" src="src/app.js?v=20260611-production-ready"></script>
   </body>
 </html>

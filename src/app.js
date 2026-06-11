@@ -17,6 +17,8 @@ const routeSections = {
   "/gallery": "gallery",
   "/checkout": "checkout",
   "/success": "success",
+  "/failed": "failed",
+  "/track": "track",
   "/about": "about",
   "/hours": "hours",
   "/contact": "contact",
@@ -25,12 +27,19 @@ const routeSections = {
 };
 const orderingUi = {
   nl: {
+    badges: {
+      new: "Nieuw",
+      popular: "Best Seller",
+      spicy: "Populair",
+      offer: "Special Offer"
+    },
     sectionText: {
       footer: "Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen."
     },
     section: {
       addedToCart: "is toegevoegd aan je winkelwagen.",
       checkout: "Checkout",
+      trackOrder: "Volg bestelling",
       checkoutEyebrow: "Veilig bestellen",
       checkoutTitle: "Rond je bestelling af",
       checkoutIntro: "Vul je gegevens in, kies je betaalmethode en bevestig je bestelling.",
@@ -39,24 +48,55 @@ const orderingUi = {
       goToCheckout: "Naar checkout",
       idealPayment: "iDEAL online betalen",
       mollieWallets: "iDEAL, Apple Pay, Google Pay en kaart via Mollie",
+      customerEmail: "E-mail",
+      customerAddress: "Adres",
+      preferredTime: "Gewenste tijd",
+      fulfillment: "Afhalen of bezorgen",
+      pickup: "Afhalen",
+      delivery: "Bezorgen",
       orderConfirmed: "Bestelling bevestigd",
       thankYou: "Bedankt voor je bestelling",
       orderNumber: "Ordernummer",
+      paymentStatus: "Betaalstatus",
+      pickupDelivery: "Afhalen / bezorgen",
       prepTime: "Bereidingstijd",
       defaultPrepTime: "20-30 min",
       successMessage: "We gaan direct voor je aan de slag. Totaal:",
       successOnlineMessage: "Je betaling is ontvangen. De bestelling wordt automatisch doorgestuurd naar de keuken.",
       onlineOrderNumber: "Online betaald",
-      backToMenu: "Terug naar menu"
+      backToMenu: "Terug naar menu",
+      callRestaurant: "Bel restaurant",
+      paymentFailed: "Betaling mislukt",
+      paymentFailedTitle: "De betaling is niet afgerond",
+      paymentFailedText: "Je kunt opnieuw proberen of een andere betaalmethode kiezen.",
+      retryPayment: "Opnieuw proberen",
+      trackEyebrow: "Bestelstatus",
+      trackTitle: "Volg je bestelling",
+      orderReceived: "Bestelling ontvangen",
+      preparing: "In bereiding",
+      readyForPickup: "Klaar voor afhalen",
+      delivered: "Afgeleverd",
+      cancelled: "Geannuleerd",
+      trackingHint: "Vul je ordernummer in of plaats een bestelling om de status te zien.",
+      directions: "Route",
+      openNow: "Nu open",
+      closedNow: "Nu gesloten"
     }
   },
   ar: {
+    badges: {
+      new: "جديد",
+      popular: "الأكثر مبيعاً",
+      spicy: "شائع",
+      offer: "عرض خاص"
+    },
     sectionText: {
       footer: "شاورما تايم فينلو. اطلب أونلاين وادفع عبر iDEAL واستلم بسرعة."
     },
     section: {
       addedToCart: "تمت إضافته إلى سلة الطلب.",
       checkout: "إتمام الطلب",
+      trackOrder: "تتبع الطلب",
       checkoutEyebrow: "طلب آمن",
       checkoutTitle: "أكمل طلبك",
       checkoutIntro: "أدخل بياناتك، اختر طريقة الدفع وأكد طلبك.",
@@ -65,24 +105,55 @@ const orderingUi = {
       goToCheckout: "إلى الدفع",
       idealPayment: "الدفع أونلاين عبر iDEAL",
       mollieWallets: "iDEAL و Apple Pay و Google Pay والبطاقة عبر Mollie",
+      customerEmail: "البريد الإلكتروني",
+      customerAddress: "العنوان",
+      preferredTime: "الوقت المفضل",
+      fulfillment: "استلام أو توصيل",
+      pickup: "استلام",
+      delivery: "توصيل",
       orderConfirmed: "تم تأكيد الطلب",
       thankYou: "شكراً لطلبك",
       orderNumber: "رقم الطلب",
+      paymentStatus: "حالة الدفع",
+      pickupDelivery: "استلام / توصيل",
       prepTime: "وقت التحضير",
       defaultPrepTime: "20-30 دقيقة",
       successMessage: "سنبدأ بتحضير طلبك فوراً. المجموع:",
       successOnlineMessage: "تم استلام الدفع. سيتم إرسال الطلب تلقائياً إلى المطبخ.",
       onlineOrderNumber: "دفع أونلاين",
-      backToMenu: "العودة إلى القائمة"
+      backToMenu: "العودة إلى القائمة",
+      callRestaurant: "اتصل بالمطعم",
+      paymentFailed: "فشل الدفع",
+      paymentFailedTitle: "لم تكتمل عملية الدفع",
+      paymentFailedText: "يمكنك المحاولة مرة أخرى أو اختيار طريقة دفع أخرى.",
+      retryPayment: "حاول مرة أخرى",
+      trackEyebrow: "حالة الطلب",
+      trackTitle: "تتبع طلبك",
+      orderReceived: "تم استلام الطلب",
+      preparing: "قيد التحضير",
+      readyForPickup: "جاهز للاستلام",
+      delivered: "تم التسليم",
+      cancelled: "ملغي",
+      trackingHint: "أدخل رقم الطلب أو قم بإنشاء طلب لمتابعة الحالة.",
+      directions: "الاتجاهات",
+      openNow: "مفتوح الآن",
+      closedNow: "مغلق الآن"
     }
   },
   de: {
+    badges: {
+      new: "Neu",
+      popular: "Bestseller",
+      spicy: "Beliebt",
+      offer: "Sonderangebot"
+    },
     sectionText: {
       footer: "Shawarma Time Venlo. Online bestellen, mit iDEAL bezahlen und schnell abholen."
     },
     section: {
       addedToCart: "wurde in den Warenkorb gelegt.",
       checkout: "Checkout",
+      trackOrder: "Bestellung verfolgen",
       checkoutEyebrow: "Sicher bestellen",
       checkoutTitle: "Bestellung abschliessen",
       checkoutIntro: "Gib deine Daten ein, waehle die Zahlung und bestaetige die Bestellung.",
@@ -91,15 +162,148 @@ const orderingUi = {
       goToCheckout: "Zum Checkout",
       idealPayment: "Online mit iDEAL bezahlen",
       mollieWallets: "iDEAL, Apple Pay, Google Pay und Karte via Mollie",
+      customerEmail: "E-Mail",
+      customerAddress: "Adresse",
+      preferredTime: "Gewuenschte Zeit",
+      fulfillment: "Abholen oder liefern",
+      pickup: "Abholen",
+      delivery: "Liefern",
       orderConfirmed: "Bestellung bestaetigt",
       thankYou: "Danke fuer deine Bestellung",
       orderNumber: "Bestellnummer",
+      paymentStatus: "Zahlungsstatus",
+      pickupDelivery: "Abholung / Lieferung",
       prepTime: "Zubereitungszeit",
       defaultPrepTime: "20-30 min",
       successMessage: "Wir beginnen direkt mit deiner Bestellung. Summe:",
       successOnlineMessage: "Die Zahlung wurde empfangen. Die Bestellung wird automatisch an die Kueche gesendet.",
       onlineOrderNumber: "Online bezahlt",
-      backToMenu: "Zurueck zum Menue"
+      backToMenu: "Zurueck zum Menue",
+      callRestaurant: "Restaurant anrufen",
+      paymentFailed: "Zahlung fehlgeschlagen",
+      paymentFailedTitle: "Die Zahlung wurde nicht abgeschlossen",
+      paymentFailedText: "Du kannst es erneut versuchen oder anders bezahlen.",
+      retryPayment: "Erneut versuchen",
+      trackEyebrow: "Bestellstatus",
+      trackTitle: "Bestellung verfolgen",
+      orderReceived: "Bestellung erhalten",
+      preparing: "In Vorbereitung",
+      readyForPickup: "Bereit zur Abholung",
+      delivered: "Geliefert",
+      cancelled: "Storniert",
+      trackingHint: "Gib deine Bestellnummer ein oder erstelle eine Bestellung, um den Status zu sehen.",
+      directions: "Route",
+      openNow: "Jetzt geoeffnet",
+      closedNow: "Jetzt geschlossen"
+    }
+  },
+  en: {
+    nav: {
+      home: "Home",
+      menu: "Menu",
+      offers: "Offers",
+      gallery: "Gallery",
+      about: "About",
+      hours: "Hours",
+      contact: "Contact"
+    },
+    categories: {
+      all: "All",
+      shawarma: "Shawarma",
+      sandwiches: "Sandwiches",
+      meals: "Meals",
+      grilledChicken: "Grilled chicken",
+      broastedChicken: "Broasted chicken",
+      crispyChicken: "Crispy chicken",
+      kapsalon: "Kapsalon",
+      falafel: "Falafel",
+      sides: "Sides",
+      drinks: "Drinks",
+      sauces: "Sauces",
+      salads: "Salads"
+    },
+    badges: {
+      new: "New",
+      popular: "Popular",
+      spicy: "Spicy",
+      offer: "Special Offer"
+    },
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    sectionText: {
+      footer: "Shawarma Time Venlo. Order online, pay with iDEAL and pick up fast."
+    },
+    section: {
+      whatsapp: "WhatsApp",
+      viewMenu: "View Menu",
+      addToCart: "Add",
+      addedToCart: "was added to your cart.",
+      cart: "Cart",
+      cartEmpty: "Your cart is empty.",
+      checkout: "Checkout",
+      trackOrder: "Track",
+      checkoutEyebrow: "Secure ordering",
+      checkoutTitle: "Complete your order",
+      checkoutIntro: "Enter your details, choose payment and confirm your order.",
+      yourOrder: "Your order",
+      addMore: "Add more",
+      goToCheckout: "Go to checkout",
+      quantity: "Quantity",
+      subtotal: "Total",
+      customerName: "Name",
+      customerPhone: "Phone",
+      customerEmail: "Email",
+      customerAddress: "Address",
+      preferredTime: "Preferred time",
+      fulfillment: "Pickup or delivery",
+      pickup: "Pickup",
+      delivery: "Delivery",
+      orderNotes: "Notes",
+      paymentMethod: "Payment method",
+      idealPayment: "Pay online with iDEAL",
+      mollieWallets: "iDEAL, Apple Pay, Google Pay and card via Mollie",
+      cashOnDelivery: "Cash",
+      payAtRestaurant: "Pay at restaurant",
+      submitOrder: "Submit order",
+      orderSuccess: "Thank you. Your order has been received.",
+      mollieRedirect: "You will be redirected to Mollie for secure payment.",
+      mollieUnavailable: "Mollie payment is not configured yet. Choose cash or pay at restaurant.",
+      mollieMissingBackend: "Mollie payment only works on the Netlify production URL with serverless functions.",
+      mollieMissingConfig: "Mollie is not fully configured. Check MOLLIE_API_KEY and FIREBASE_SERVICE_ACCOUNT.",
+      paymentSuccess: "Payment received. Your order has been sent.",
+      paymentCancel: "Online payment was cancelled. You can try again or choose another payment method.",
+      orderError: "Could not send order.",
+      orderConfirmed: "Order confirmed",
+      thankYou: "Thank you for your order",
+      orderNumber: "Order number",
+      paymentStatus: "Payment status",
+      pickupDelivery: "Pickup / delivery",
+      prepTime: "Preparation time",
+      defaultPrepTime: "20-30 min",
+      successMessage: "We will start preparing your order. Total:",
+      successOnlineMessage: "Your payment was received. The order will be sent to the kitchen automatically.",
+      onlineOrderNumber: "Paid online",
+      backToMenu: "Back to menu",
+      callRestaurant: "Call restaurant",
+      closeCart: "Close cart",
+      fullscreen: "Open image",
+      close: "Close",
+      paymentFailed: "Payment failed",
+      paymentFailedTitle: "Payment was not completed",
+      paymentFailedText: "You can try again or choose another payment method.",
+      retryPayment: "Try again",
+      trackEyebrow: "Order status",
+      trackTitle: "Track your order",
+      orderReceived: "Order Received",
+      preparing: "Preparing",
+      readyForPickup: "Ready for Pickup",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+      trackingHint: "Enter your order number or place an order to see the status.",
+      directions: "Directions",
+      openNow: "Open now",
+      closedNow: "Closed now",
+      address: "Address",
+      phone: "Phone"
     }
   }
 };
@@ -327,9 +531,24 @@ function openLightbox(src, caption) {
 }
 
 function renderHours() {
-  $("#hoursList").innerHTML = ui[lang].days.map((day, index) => `
+  const openState = isOpenNow(data.settings.hours);
+  $("#hoursList").innerHTML = `
+    <p class="open-state ${openState.open ? "open" : "closed"}"><span>${openState.open ? t("section.openNow") : t("section.closedNow")}</span><strong>${openState.today || ""}</strong></p>
+  ` + (orderingUi[lang]?.days || ui[lang]?.days || ui.nl.days).map((day, index) => `
     <p><span>${day}</span><strong>${data.settings.hours[index] || ""}</strong></p>
   `).join("");
+}
+
+function isOpenNow(hours) {
+  const now = new Date();
+  const mondayIndex = (now.getDay() + 6) % 7;
+  const today = hours?.[mondayIndex] || "";
+  const match = today.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+  if (!match) return { open: false, today };
+  const current = now.getHours() * 60 + now.getMinutes();
+  const start = Number(match[1]) * 60 + Number(match[2]);
+  const end = Number(match[3]) * 60 + Number(match[4]);
+  return { open: current >= start && current <= end, today };
 }
 
 function renderReviews() {
@@ -363,6 +582,8 @@ function renderContact() {
   $("#contactPhone").href = phoneHref(data.settings.phone);
   $("#whatsappBtn").href = whatsappHref(data.settings.phone);
   $("#floatingWhatsapp").href = whatsappHref(data.settings.phone);
+  $("#successPhoneBtn").href = phoneHref(data.settings.phone);
+  $("#directionsBtn").href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.settings.address)}`;
 }
 
 function addToCart(itemId) {
@@ -438,6 +659,12 @@ function renderCheckout() {
   if (!checkoutItems) return;
   $("#checkoutNameLabel").textContent = t("section.customerName");
   $("#checkoutPhoneLabel").textContent = t("section.customerPhone");
+  $("#checkoutEmailLabel").textContent = t("section.customerEmail");
+  $("#checkoutAddressLabel").textContent = t("section.customerAddress");
+  $("#checkoutTimeLabel").textContent = t("section.preferredTime");
+  $("#checkoutFulfillmentLabel").textContent = t("section.fulfillment");
+  $("#pickupLabel").textContent = t("section.pickup");
+  $("#deliveryLabel").textContent = t("section.delivery");
   $("#checkoutNotesLabel").textContent = t("section.orderNotes");
   $("#checkoutPaymentMethodLabel").textContent = t("section.paymentMethod");
   $("#checkoutMollieLabel").textContent = t("section.idealPayment");
@@ -501,6 +728,10 @@ async function submitCart(event) {
       customer: {
         name: form.get("name"),
         phone: form.get("phone"),
+        email: form.get("email"),
+        address: form.get("address"),
+        fulfillment: form.get("fulfillment"),
+        preferredTime: form.get("preferredTime"),
         notes: form.get("notes")
       },
       paymentMethod
@@ -513,7 +744,7 @@ async function submitCart(event) {
     const total = cartTotal();
     const orderId = await createFirebaseOrder(orderPayload);
     notifyOrderCreated(orderId, orderPayload, total);
-    showOrderSuccess(orderId, total, paymentMethod);
+    showOrderSuccess(orderId, total, paymentMethod, orderPayload);
     cart = [];
     cartForm.reset();
     renderCart();
@@ -525,7 +756,7 @@ async function submitCart(event) {
   }
 }
 
-function showOrderSuccess(orderId, total, paymentMethod) {
+function showOrderSuccess(orderId, total, paymentMethod, orderPayload) {
   const orderNumber = formatOrderNumber(orderId);
   const successData = {
     orderId,
@@ -533,6 +764,10 @@ function showOrderSuccess(orderId, total, paymentMethod) {
     prepTime: t("section.defaultPrepTime"),
     total,
     paymentMethod,
+    paymentStatus: paymentMethod === "mollie" ? "paid" : "unpaid",
+    customer: orderPayload.customer,
+    items: orderPayload.items,
+    status: "new",
     createdAt: new Date().toISOString()
   };
   sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));
@@ -545,10 +780,54 @@ function showOrderSuccess(orderId, total, paymentMethod) {
 function renderSuccess(successData = getLastOrder()) {
   const number = successData?.orderNumber || "-";
   $("#successOrderNumber").textContent = number;
+  $("#successPaymentStatus").textContent = paymentStatusText(successData?.paymentStatus);
   $("#successPrepTime").textContent = successData?.prepTime || t("section.defaultPrepTime");
+  $("#successFulfillment").textContent = fulfillmentText(successData?.customer?.fulfillment);
+  $("#successSummary").innerHTML = successData?.items?.length ? `
+    <strong>${t("section.yourOrder")}</strong>
+    ${successData.items.map((item) => `<p><span>${Number(item.quantity || 1)}x ${escapeHtml(item.name || "")}</span><b>${escapeHtml(item.price || "")}</b></p>`).join("")}
+  ` : "";
   $("#successMessage").textContent = number === "-"
     ? t("section.successOnlineMessage")
     : `${t("section.successMessage")} ${euro(Number(successData.total || 0))}`;
+  renderTracking(successData);
+}
+
+function paymentStatusText(status) {
+  const labels = {
+    paid: lang === "ar" ? "مدفوع" : lang === "de" ? "Bezahlt" : lang === "en" ? "Paid" : "Betaald",
+    pending: lang === "ar" ? "قيد الانتظار" : lang === "de" ? "Ausstehend" : lang === "en" ? "Pending" : "In afwachting",
+    unpaid: lang === "ar" ? "غير مدفوع" : lang === "de" ? "Nicht bezahlt" : lang === "en" ? "Unpaid" : "Niet betaald"
+  };
+  return labels[status] || labels.unpaid;
+}
+
+function fulfillmentText(value) {
+  return value === "delivery" ? t("section.delivery") : t("section.pickup");
+}
+
+function renderTracking(order = getLastOrder()) {
+  const root = $("#trackSteps");
+  if (!root) return;
+  const current = order?.status || "new";
+  const statuses = ["new", "preparing", "ready", "delivered", "cancelled"];
+  const index = statuses.indexOf(current);
+  const labels = {
+    new: t("section.orderReceived"),
+    preparing: t("section.preparing"),
+    ready: t("section.readyForPickup"),
+    delivered: t("section.delivered"),
+    cancelled: t("section.cancelled")
+  };
+  root.innerHTML = statuses.map((status, statusIndex) => `
+    <div class="track-step ${statusIndex <= Math.max(index, 0) ? "active" : ""} ${status === current ? "current" : ""}">
+      <span></span>
+      <b>${labels[status]}</b>
+    </div>
+  `).join("");
+  $("#trackNote").textContent = order?.orderNumber
+    ? `${t("section.orderNumber")}: ${order.orderNumber}`
+    : t("section.trackingHint");
 }
 
 function getLastOrder() {
@@ -612,6 +891,17 @@ async function redirectToMolliePayment(orderPayload) {
   const endpoint = paymentConfig.molliePaymentEndpoint;
   if (!endpoint) throw new Error(t("section.mollieUnavailable"));
   await assertMollieReady();
+  sessionStorage.setItem("shawarma-time-pending-online-order", JSON.stringify({
+    orderNumber: t("section.onlineOrderNumber"),
+    prepTime: t("section.defaultPrepTime"),
+    total: cartTotal(),
+    paymentMethod: "mollie",
+    paymentStatus: "pending",
+    customer: orderPayload.customer,
+    items: orderPayload.items,
+    status: "new",
+    createdAt: new Date().toISOString()
+  }));
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -623,7 +913,7 @@ async function redirectToMolliePayment(orderPayload) {
         currency: "EUR"
       },
       redirectUrl: new URL(`${routeUrl("/success")}?payment=success`, window.location.origin).toString(),
-      cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel`
+      cancelUrl: new URL(`${routeUrl("/failed")}?payment=failed`, window.location.origin).toString()
     })
   });
   const payload = await response.json().catch(() => ({}));
@@ -693,6 +983,7 @@ function render() {
   renderContact();
   renderCheckout();
   renderSuccess();
+  renderTracking();
   renderPaymentReturnMessage();
   window.requestAnimationFrame(() => scrollToRoute(currentRoute(), "auto"));
 }
@@ -701,13 +992,32 @@ function renderPaymentReturnMessage() {
   const params = new URLSearchParams(window.location.search);
   const payment = params.get("payment");
   if (payment === "success") {
-    renderSuccess({
+    const pending = getPendingOnlineOrder();
+    const successData = pending || {
       orderNumber: t("section.onlineOrderNumber"),
-      prepTime: t("section.defaultPrepTime")
-    });
+      prepTime: t("section.defaultPrepTime"),
+      paymentStatus: "paid",
+      customer: { fulfillment: "pickup" },
+      status: "new"
+    };
+    successData.paymentStatus = "paid";
+    sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));
+    sessionStorage.removeItem("shawarma-time-pending-online-order");
+    cart = [];
+    renderCart();
+    renderSuccess(successData);
     setStatus(t("section.paymentSuccess"), false);
   }
   if (payment === "cancel") setStatus(t("section.paymentCancel"), true);
+  if (payment === "failed") setStatus(t("section.paymentCancel"), true);
+}
+
+function getPendingOnlineOrder() {
+  try {
+    return JSON.parse(sessionStorage.getItem("shawarma-time-pending-online-order") || "null");
+  } catch {
+    return null;
+  }
 }
 
 async function refreshDataAndRender() {
@@ -791,6 +1101,16 @@ $("#goCheckoutBtn").addEventListener("click", () => {
   navigateToRoute("/checkout");
 });
 $("#checkoutForm").addEventListener("submit", submitCart);
+$("#trackForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = new FormData(event.currentTarget).get("orderNumber");
+  const lastOrder = getLastOrder();
+  if (lastOrder?.orderNumber && String(value || "").trim().toUpperCase() === lastOrder.orderNumber.toUpperCase()) {
+    renderTracking(lastOrder);
+    return;
+  }
+  renderTracking(null);
+});
 
 if (document.readyState === "complete") {
   document.body.classList.add("loaded");

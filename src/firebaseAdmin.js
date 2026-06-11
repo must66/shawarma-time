@@ -23,6 +23,8 @@ let currentSession;
 let orders = [];
 let unsubscribeOrders = null;
 let ordersError = "";
+let knownOrderIds = new Set();
+const readOrdersKey = "shawarma-time-read-orders";
 
 const adminText = {
   nl: {
@@ -482,6 +484,7 @@ document.querySelectorAll(".admin-sidebar nav button").forEach((button) => {
     document.querySelectorAll(".admin-sidebar nav button, .admin-panel").forEach((node) => node.classList.remove("active"));
     button.classList.add("active");
     $(`#${button.dataset.panel}`).classList.add("active");
+    if (button.dataset.panel === "ordersPanel") markOrdersRead();
   });
 });
 
@@ -534,6 +537,13 @@ async function startOrdersFeed() {
   if (unsubscribeOrders || !isFirebaseConfigured()) return;
   unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders) => {
     ordersError = "";
+    const incomingIds = new Set(incomingOrders.map((order) => order.id));
+    const freshOrders = incomingOrders.filter((order) => !knownOrderIds.has(order.id));
+    if (knownOrderIds.size && freshOrders.length) {
+      playOrderSound();
+      note(`${freshOrders.length} ${tr("ordersTitle")}`);
+    }
+    knownOrderIds = incomingIds;
     orders = incomingOrders;
     renderOrders();
   }, (error) => {
@@ -551,10 +561,12 @@ function renderOrders() {
   }
   if (!orders.length) {
     root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("noOrders")}</p></article>`;
+    updateOrdersBadge();
     return;
   }
+  const readOrders = getReadOrders();
   root.innerHTML = orders.map((order) => `
-    <article class="admin-card order-card" data-order-id="${order.id}">
+    <article class="admin-card order-card ${readOrders.has(order.id) ? "" : "unread"}" data-order-id="${order.id}">
       <div class="order-card-head">
         <div>
           <strong>#${order.id.slice(0, 8).toUpperCase()}</strong>
@@ -579,7 +591,10 @@ function renderOrders() {
         <select data-order-status="${order.id}">
           ${statusOption("new", order.orderStatus || order.status)}
           ${statusOption("preparing", order.orderStatus || order.status)}
+          ${statusOption("ready", order.orderStatus || order.status)}
+          ${statusOption("delivered", order.orderStatus || order.status)}
           ${statusOption("completed", order.orderStatus || order.status)}
+          ${statusOption("cancelled", order.orderStatus || order.status)}
         </select>
       </label>
     </article>
@@ -597,6 +612,7 @@ function renderOrders() {
       }
     });
   });
+  updateOrdersBadge();
 }
 
 function statusOption(value, selected) {
@@ -604,8 +620,47 @@ function statusOption(value, selected) {
 }
 
 function statusLabel(status) {
-  const keys = { new: "orderNew", preparing: "orderPreparing", completed: "orderCompleted" };
-  return tr(keys[status] || "orderNew");
+  const fallback = {
+    nl: { ready: "Klaar voor afhalen", delivered: "Afgeleverd", cancelled: "Geannuleerd" },
+    ar: { ready: "جاهز للاستلام", delivered: "تم التسليم", cancelled: "ملغي" },
+    de: { ready: "Bereit zur Abholung", delivered: "Geliefert", cancelled: "Storniert" }
+  };
+  const keys = { new: "orderNew", preparing: "orderPreparing", ready: "orderReady", delivered: "orderDelivered", completed: "orderCompleted", cancelled: "orderCancelled" };
+  const translated = tr(keys[status] || "orderNew");
+  if (translated === keys[status]) return fallback[adminLang]?.[status] || fallback.nl[status] || tr("orderNew");
+  return translated;
+}
+
+function getReadOrders() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(readOrdersKey) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function markOrdersRead() {
+  localStorage.setItem(readOrdersKey, JSON.stringify(orders.map((order) => order.id)));
+  renderOrders();
+}
+
+function updateOrdersBadge() {
+  const badge = $("#ordersBadge");
+  if (!badge) return;
+  const readOrders = getReadOrders();
+  const unread = orders.filter((order) => !readOrders.has(order.id)).length;
+  badge.textContent = String(unread);
+  badge.classList.toggle("hidden", unread === 0);
+}
+
+function playOrderSound() {
+  try {
+    const audio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
+    audio.volume = 0.35;
+    audio.play().catch(() => {});
+  } catch {
+    // Browser audio can be blocked until the admin interacts with the page.
+  }
 }
 
 function paymentMethodLabel(method) {

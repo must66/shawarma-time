@@ -951,7 +951,8 @@ body.no-glow .loader span {
   min-height: 82px;
   resize: vertical;
 }
-.payment-methods {
+.payment-methods,
+.fulfillment-methods {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -960,13 +961,15 @@ body.no-glow .loader span {
   border-radius: 14px;
   background: rgba(255,255,255,.045);
 }
-.payment-methods legend {
+.payment-methods legend,
+.fulfillment-methods legend {
   padding: 0 6px;
   color: var(--gold);
   font-size: .82rem;
   font-weight: 950;
 }
-.payment-methods label {
+.payment-methods label,
+.fulfillment-methods label {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -979,7 +982,8 @@ body.no-glow .loader span {
   color: var(--text);
   cursor: pointer;
 }
-.payment-methods input {
+.payment-methods input,
+.fulfillment-methods input {
   width: 18px;
   height: 18px;
   min-height: 18px;
@@ -1078,6 +1082,15 @@ body.no-glow .loader span {
   font-size: .78rem;
   font-weight: 700;
 }
+.fulfillment-methods {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 14px;
+}
+.fulfillment-methods label:has(input:checked),
+.payment-methods label:has(input:checked) {
+  border-color: rgba(255,191,88,.46);
+  background: rgba(255,122,26,.13);
+}
 .checkout-submit {
   min-height: 58px;
   width: 100%;
@@ -1137,7 +1150,7 @@ body.no-glow .loader span {
 }
 .success-details {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 28px 0;
 }
@@ -1159,6 +1172,93 @@ body.no-glow .loader span {
   color: var(--muted);
   line-height: 1.7;
 }
+.success-summary {
+  display: grid;
+  gap: 8px;
+  margin: 0 auto 22px;
+  max-width: 620px;
+  text-align: start;
+  border: 1px solid rgba(255,191,88,.16);
+  border-radius: 16px;
+  background: rgba(255,255,255,.045);
+  padding: 16px;
+}
+.success-summary strong { color: var(--gold); }
+.success-summary p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: var(--muted);
+}
+.order-success-card.failed {
+  border-color: rgba(255, 75, 47, .28);
+}
+
+.track-section {
+  min-height: calc(100svh - 78px);
+}
+.track-card {
+  width: min(100%, 860px);
+  border: 1px solid rgba(255,191,88,.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255,191,88,.08), transparent 44%),
+    rgba(16, 7, 5, .94);
+  box-shadow: var(--shadow);
+  padding: clamp(20px, 4vw, 36px);
+}
+.track-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 28px;
+}
+.track-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 900;
+}
+.track-form input {
+  min-height: 52px;
+  border: 1px solid rgba(255,191,88,.18);
+  border-radius: 14px;
+  background: rgba(255,255,255,.07);
+  color: var(--text);
+  padding: 12px 14px;
+}
+.track-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.track-step {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+.track-step span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,191,88,.25);
+  background: rgba(255,255,255,.05);
+}
+.track-step.active span {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--orange), var(--gold));
+  box-shadow: 0 0 26px rgba(255,122,26,.28);
+}
+.track-step.current b { color: var(--gold); }
+.open-state.open strong,
+.open-state.open span { color: #8dffb9; }
+.open-state.closed strong,
+.open-state.closed span { color: #ffb4a8; }
 
 .mobile-bottom-nav {
   position: fixed;
@@ -1312,7 +1412,7 @@ body.no-animations .btn {
   .food-card h3 { font-size: 1.35rem; }
   .food-card-bottom { align-items: stretch; }
   .food-card-bottom .btn { flex: 0 0 auto; }
-  .form-row, .success-details { grid-template-columns: 1fr; }
+  .form-row, .success-details, .fulfillment-methods, .track-form, .track-steps { grid-template-columns: 1fr; }
   .checkout-main, .order-success-card { padding: 22px; }
   .checkout-item { grid-template-columns: 66px 1fr; }
   .checkout-item b { grid-column: 2; }

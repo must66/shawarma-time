@@ -193,7 +193,7 @@ export async function updateFirebaseOrderStatus(orderId, status) {
   if (!firebase) {
     throw new Error(CONFIG_ERROR);
   }
-  if (!["new", "preparing", "completed"].includes(status)) {
+  if (!["new", "preparing", "ready", "delivered", "completed", "cancelled"].includes(status)) {
     throw new Error("Invalid order status.");
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
@@ -265,6 +265,10 @@ function normalizeOrder(order) {
   const customer = {
     name: String(order?.customer?.name || "").trim().slice(0, 120),
     phone: String(order?.customer?.phone || "").trim().slice(0, 80),
+    email: String(order?.customer?.email || "").trim().slice(0, 160),
+    address: String(order?.customer?.address || "").trim().slice(0, 240),
+    fulfillment: ["pickup", "delivery"].includes(order?.customer?.fulfillment) ? order.customer.fulfillment : "pickup",
+    preferredTime: String(order?.customer?.preferredTime || "").trim().slice(0, 40),
     notes: String(order?.customer?.notes || "").trim().slice(0, 600)
   };
   if (!customer.name || !customer.phone) throw new Error("Customer name and phone are required.");
@@ -277,7 +281,7 @@ function normalizeOrder(order) {
     subtotal: Number(subtotal.toFixed(2)),
     currency: "EUR",
     paymentMethod,
-    paymentStatus: paymentMethod === "stripe" ? "pending" : "unpaid",
+    paymentStatus: paymentMethod === "stripe" || paymentMethod === "mollie" ? "pending" : "unpaid",
     source: "website"
   };
 }

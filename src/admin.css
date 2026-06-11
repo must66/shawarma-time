@@ -573,6 +573,26 @@ html[dir="rtl"] .admin-sidebar nav button {
   gap: 16px;
 }
 
+.order-card.unread {
+  border-color: rgba(255, 191, 88, .46);
+  box-shadow: 0 0 0 1px rgba(255, 191, 88, .18), 0 20px 70px rgba(255, 122, 26, .12);
+}
+
+.nav-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-inline-start: auto;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff5c16, #ffbf58);
+  color: #160604;
+  font-size: .72rem;
+  font-weight: 950;
+}
+
+.nav-badge.hidden { display: none; }
+
 .order-card-head,
 .order-meta {
   display: flex;
@@ -621,6 +641,21 @@ html[dir="rtl"] .admin-sidebar nav button {
 .order-status.completed {
   background: rgba(37, 211, 102, .16);
   color: #8dffb9;
+}
+
+.order-status.ready {
+  background: rgba(15, 78, 85, .28);
+  color: #9ef8ff;
+}
+
+.order-status.delivered {
+  background: rgba(37, 211, 102, .18);
+  color: #8dffb9;
+}
+
+.order-status.cancelled {
+  background: rgba(255, 75, 47, .18);
+  color: #ffb4a8;
 }
 
 .order-meta {

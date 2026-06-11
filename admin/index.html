@@ -39,7 +39,7 @@
           </a>
           <nav>
             <button data-panel="homePanel" class="active"><span>D</span><b data-admin-i18n="navDashboard">Dashboard</b></button>
-            <button data-panel="ordersPanel"><span>O</span><b data-admin-i18n="navOrders">Bestellingen</b></button>
+            <button data-panel="ordersPanel" id="ordersNavBtn"><span>O</span><b data-admin-i18n="navOrders">Bestellingen</b><em class="nav-badge hidden" id="ordersBadge">0</em></button>
             <button data-panel="menuPanel"><span>M</span><b data-admin-i18n="navMenu">Menu</b></button>
             <button data-panel="offersPanel"><span>%</span><b data-admin-i18n="navOffers">Aanbiedingen</b></button>
             <button data-panel="reviewsPanel"><span>R</span><b data-admin-i18n="navReviews">Reviews</b></button>
@@ -121,6 +121,6 @@
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=20260611-order-audit"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=20260611-production-ready"></script>
   </body>
 </html>
