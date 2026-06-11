@@ -104,7 +104,7 @@ body.loaded .loader { display: none; }
   top: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 22px;
   padding: 14px clamp(16px, 4vw, 64px);
@@ -1003,10 +1003,9 @@ body.no-animations .btn {
 }
 
 @media (max-width: 1120px) {
-  .site-header { grid-template-columns: auto auto 1fr auto; }
+  .site-header { grid-template-columns: auto auto 1fr; }
   .nav-toggle { display: grid; place-items: center; order: 2; }
   .language-switcher { justify-self: end; order: 3; }
-  .cart-open { order: 4; }
   .main-nav {
     grid-column: 1 / -1;
     display: none;
