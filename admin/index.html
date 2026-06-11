@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Admin | Shawarma Time</title>
-    <link rel="stylesheet" href="../src/styles.css?v=firebase-admin-20260611-3" />
-    <link rel="stylesheet" href="../src/admin.css?v=firebase-admin-20260611-3" />
+    <link rel="stylesheet" href="../src/styles.css?v=20260611-online-orders" />
+    <link rel="stylesheet" href="../src/admin.css?v=20260611-online-orders" />
   </head>
   <body class="admin-body">
     <main class="admin-shell">
@@ -76,7 +76,8 @@
 
           <section id="ordersPanel" class="admin-panel">
             <div class="panel-head"><h2 data-admin-i18n="ordersTitle">Bestellingen</h2></div>
-            <article class="admin-card"><p data-admin-i18n="ordersNote">Online bestellen is uitgeschakeld voor deze showcase website.</p></article>
+            <article class="admin-card"><p data-admin-i18n="ordersNote">Nieuwe bestellingen verschijnen hier automatisch.</p></article>
+            <div class="orders-list" id="ordersList"></div>
           </section>
 
           <section id="menuPanel" class="admin-panel">
@@ -120,6 +121,6 @@
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=firebase-admin-20260611-3"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=20260611-online-orders"></script>
   </body>
 </html>

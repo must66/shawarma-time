@@ -1,10 +1,12 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
+import { createFirebaseOrder } from "./firebaseService.js";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
 let data = loadSiteData();
 let unsubscribeRealtime = null;
+let cart = [];
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -27,6 +29,7 @@ function applyLanguage() {
   document.querySelectorAll("[data-section-text]").forEach((el) => {
     el.textContent = localized(data.sectionText?.[el.dataset.sectionText], lang);
   });
+  renderCart();
 }
 
 function phoneHref(phone) {
@@ -141,7 +144,10 @@ function itemCard(item) {
         <span>${t(`categories.${item.category}`)}</span>
         <h3>${localized(item.name, lang)}</h3>
         <p>${localized(item.desc, lang)}</p>
-        <strong>${item.price}</strong>
+        <div class="food-card-bottom">
+          <strong>${item.price}</strong>
+          <button class="btn tiny" type="button" data-add-cart="${encodeAttr(item.id)}">${t("section.addToCart")}</button>
+        </div>
       </div>
     </article>
   `;
@@ -150,6 +156,9 @@ function itemCard(item) {
 function renderMenu() {
   const items = activeCategory === "all" ? data.menu : data.menu.filter((item) => item.category === activeCategory);
   $("#menuGrid").innerHTML = items.map(itemCard).join("");
+  $("#menuGrid").querySelectorAll("[data-add-cart]").forEach((button) => {
+    button.addEventListener("click", () => addToCart(button.dataset.addCart));
+  });
 }
 
 function renderOffers() {
@@ -225,6 +234,128 @@ function renderContact() {
   $("#contactPhone").href = phoneHref(data.settings.phone);
   $("#whatsappBtn").href = whatsappHref(data.settings.phone);
   $("#floatingWhatsapp").href = whatsappHref(data.settings.phone);
+}
+
+function addToCart(itemId) {
+  const item = data.menu.find((entry) => entry.id === itemId);
+  if (!item) return;
+  const existing = cart.find((entry) => entry.id === itemId);
+  if (existing) existing.quantity += 1;
+  else cart.push({
+    id: item.id,
+    name: localized(item.name, lang),
+    price: item.price,
+    priceValue: priceNumber(item.price),
+    image: item.image,
+    quantity: 1
+  });
+  renderCart();
+  openCart();
+}
+
+function priceNumber(price) {
+  const normalized = String(price || "").replace(/[^\d,.-]/g, "").replace(",", ".");
+  const value = Number.parseFloat(normalized);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function cartTotal() {
+  return cart.reduce((sum, item) => sum + item.priceValue * item.quantity, 0);
+}
+
+function renderCart() {
+  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = $("#cartCount");
+  if (cartCount) cartCount.textContent = String(count);
+  const title = $("#cartTitle");
+  if (title) title.textContent = t("section.cart");
+  const list = $("#cartItems");
+  if (!list) return;
+  if (!cart.length) {
+    list.innerHTML = `<p class="cart-empty">${t("section.cartEmpty")}</p>`;
+  } else {
+    list.innerHTML = cart.map((item) => `
+      <article class="cart-item" data-cart-id="${encodeAttr(item.id)}">
+        <img src="${item.image}" alt="${encodeAttr(item.name)}" loading="lazy" decoding="async" />
+        <div>
+          <strong>${item.name}</strong>
+          <span>${item.price}</span>
+          <div class="quantity-control" aria-label="${t("section.quantity")}">
+            <button type="button" data-cart-dec="${encodeAttr(item.id)}">-</button>
+            <b>${item.quantity}</b>
+            <button type="button" data-cart-inc="${encodeAttr(item.id)}">+</button>
+          </div>
+        </div>
+        <button class="cart-remove" type="button" data-cart-remove="${encodeAttr(item.id)}" aria-label="${t("section.close")}">×</button>
+      </article>
+    `).join("");
+  }
+  $("#cartSubtotalLabel").textContent = t("section.subtotal");
+  $("#cartSubtotal").textContent = euro(cartTotal());
+  $("#orderNameLabel").textContent = t("section.customerName");
+  $("#orderPhoneLabel").textContent = t("section.customerPhone");
+  $("#orderNotesLabel").textContent = t("section.orderNotes");
+  $("#submitOrderBtn").textContent = t("section.submitOrder");
+  $("#cartClose").setAttribute("aria-label", t("section.closeCart"));
+  list.querySelectorAll("[data-cart-inc]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartInc, 1)));
+  list.querySelectorAll("[data-cart-dec]").forEach((button) => button.addEventListener("click", () => changeQuantity(button.dataset.cartDec, -1)));
+  list.querySelectorAll("[data-cart-remove]").forEach((button) => button.addEventListener("click", () => removeFromCart(button.dataset.cartRemove)));
+}
+
+function euro(value) {
+  return new Intl.NumberFormat(lang === "de" ? "de-DE" : "nl-NL", { style: "currency", currency: "EUR" }).format(value);
+}
+
+function changeQuantity(itemId, delta) {
+  cart = cart.map((item) => item.id === itemId ? { ...item, quantity: item.quantity + delta } : item)
+    .filter((item) => item.quantity > 0);
+  renderCart();
+}
+
+function removeFromCart(itemId) {
+  cart = cart.filter((item) => item.id !== itemId);
+  renderCart();
+}
+
+function openCart() {
+  $("#cartDrawer").classList.add("open");
+  $("#cartBackdrop").classList.add("open");
+}
+
+function closeCart() {
+  $("#cartDrawer").classList.remove("open");
+  $("#cartBackdrop").classList.remove("open");
+}
+
+async function submitCart(event) {
+  event.preventDefault();
+  if (!cart.length) {
+    setStatus(t("section.cartEmpty"), true);
+    return;
+  }
+  const form = new FormData(event.currentTarget);
+  setStatus(t("section.submitOrder"), false);
+  $("#submitOrderBtn").disabled = true;
+  try {
+    await createFirebaseOrder({
+      items: cart,
+      customer: {
+        name: form.get("name"),
+        phone: form.get("phone"),
+        notes: form.get("notes")
+      }
+    });
+    cart = [];
+    event.currentTarget.reset();
+    renderCart();
+    closeCart();
+    setStatus(t("section.orderSuccess"), false);
+  } catch (error) {
+    console.error(error);
+    setStatus(error?.message || t("section.orderError"), true);
+  } finally {
+    $("#submitOrderBtn").disabled = false;
+  }
 }
 
 function setupReveal() {
@@ -305,6 +436,11 @@ $(".lightbox-close").addEventListener("click", () => $("#lightbox").close());
 $("#lightbox").addEventListener("click", (event) => {
   if (event.target.id === "lightbox") $("#lightbox").close();
 });
+
+$("#cartOpen").addEventListener("click", openCart);
+$("#cartClose").addEventListener("click", closeCart);
+$("#cartBackdrop").addEventListener("click", closeCart);
+$("#cartForm").addEventListener("submit", submitCart);
 
 if (document.readyState === "complete") {
   document.body.classList.add("loaded");

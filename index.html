@@ -12,7 +12,7 @@
     <meta property="og:locale" content="nl_NL" />
     <title>Shawarma Time</title>
     <link rel="canonical" href="https://shawarma-time.netlify.app/" />
-    <link rel="stylesheet" href="src/styles.css?v=20260611-hero-arabic-title-fix" />
+    <link rel="stylesheet" href="src/styles.css?v=20260611-online-orders" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -57,6 +57,10 @@
         <button type="button" data-lang="nl" class="active">NL</button>
         <button type="button" data-lang="de">DE</button>
       </div>
+      <button class="cart-open" id="cartOpen" type="button" aria-label="Cart">
+        <span>BAG</span>
+        <b id="cartCount">0</b>
+      </button>
     </header>
 
     <main>
@@ -183,6 +187,25 @@
       <p id="lightboxCaption"></p>
     </dialog>
 
+    <div class="cart-backdrop" id="cartBackdrop"></div>
+    <aside class="cart-drawer" id="cartDrawer" aria-label="Cart">
+      <div class="cart-head">
+        <h2 id="cartTitle">Winkelwagen</h2>
+        <button id="cartClose" type="button" aria-label="Winkelwagen sluiten">×</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-total">
+        <span id="cartSubtotalLabel">Totaal</span>
+        <strong id="cartSubtotal">€0,00</strong>
+      </div>
+      <form class="cart-form" id="cartForm">
+        <label><span id="orderNameLabel">Naam</span><input name="name" autocomplete="name" required /></label>
+        <label><span id="orderPhoneLabel">Telefoon</span><input name="phone" autocomplete="tel" required /></label>
+        <label><span id="orderNotesLabel">Opmerking</span><textarea name="notes"></textarea></label>
+        <button class="btn primary" id="submitOrderBtn" type="submit">Bestelling versturen</button>
+      </form>
+    </aside>
+
     <a class="floating-whatsapp" id="floatingWhatsapp" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
 
     <footer class="site-footer">
@@ -191,6 +214,6 @@
       <span data-section-text="footer">Showcase website voor Shawarma Time. Geen online bestellen, geen reserveringen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260611-hero-arabic-title-fix"></script>
+    <script type="module" src="src/app.js?v=20260611-online-orders"></script>
   </body>
 </html>

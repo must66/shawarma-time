@@ -6,6 +6,8 @@ import {
   saveFirebaseSiteData,
   signInAdmin,
   signOutAdmin,
+  subscribeFirebaseOrders,
+  updateFirebaseOrderStatus,
   uploadFirebaseImage
 } from "./firebaseService.js";
 
@@ -18,6 +20,8 @@ let siteData = loadSiteData();
 let adminLang = localStorage.getItem(adminLangKey) || "nl";
 if (!["nl", "ar", "de"].includes(adminLang)) adminLang = "nl";
 let currentSession;
+let orders = [];
+let unsubscribeOrders = null;
 
 const adminText = {
   nl: {
@@ -45,7 +49,17 @@ const adminText = {
     dashboardTitle: "Dashboard",
     homeTitle: "Homepagina banners",
     ordersTitle: "Bestellingen",
-    ordersNote: "Online bestellen is uitgeschakeld voor deze showcase website.",
+    ordersNote: "Nieuwe bestellingen verschijnen hier automatisch.",
+    noOrders: "Nog geen bestellingen.",
+    orderCustomer: "Klant",
+    orderPhone: "Telefoon",
+    orderNotes: "Opmerking",
+    orderItems: "Items",
+    orderTotal: "Totaal",
+    orderStatus: "Status",
+    orderNew: "Nieuw",
+    orderPreparing: "In bereiding",
+    orderCompleted: "Afgerond",
     menuTitle: "Menu-items",
     offersTitle: "Aanbiedingen",
     reviewsTitle: "Reviews",
@@ -128,7 +142,17 @@ const adminText = {
     dashboardTitle: "لوحة التحكم",
     homeTitle: "بنرات الصفحة الرئيسية",
     ordersTitle: "الطلبات",
-    ordersNote: "نظام الطلبات عبر الإنترنت غير مفعّل في موقع العرض هذا.",
+    ordersNote: "الطلبات الجديدة تظهر هنا تلقائياً.",
+    noOrders: "لا توجد طلبات بعد.",
+    orderCustomer: "الزبون",
+    orderPhone: "الهاتف",
+    orderNotes: "ملاحظة",
+    orderItems: "الأصناف",
+    orderTotal: "المجموع",
+    orderStatus: "الحالة",
+    orderNew: "جديد",
+    orderPreparing: "قيد التحضير",
+    orderCompleted: "مكتمل",
     menuTitle: "عناصر القائمة",
     offersTitle: "العروض والخصومات",
     reviewsTitle: "التقييمات",
@@ -211,7 +235,17 @@ const adminText = {
     dashboardTitle: "Dashboard",
     homeTitle: "Homepage-Banner",
     ordersTitle: "Bestellungen",
-    ordersNote: "Online-Bestellungen sind für diese Showcase-Website deaktiviert.",
+    ordersNote: "Neue Bestellungen erscheinen hier automatisch.",
+    noOrders: "Noch keine Bestellungen.",
+    orderCustomer: "Kunde",
+    orderPhone: "Telefon",
+    orderNotes: "Notiz",
+    orderItems: "Artikel",
+    orderTotal: "Summe",
+    orderStatus: "Status",
+    orderNew: "Neu",
+    orderPreparing: "In Vorbereitung",
+    orderCompleted: "Abgeschlossen",
     menuTitle: "Menüpunkte",
     offersTitle: "Angebote",
     reviewsTitle: "Bewertungen",
@@ -367,6 +401,7 @@ async function showDashboard(session) {
   renderRole();
   siteData = await loadContent();
   renderAll();
+  startOrdersFeed();
 }
 
 async function loadContent() {
@@ -403,6 +438,9 @@ $("#loginForm").addEventListener("submit", async (event) => {
 });
 
 $("#logoutBtn").addEventListener("click", async () => {
+  if (unsubscribeOrders) unsubscribeOrders();
+  unsubscribeOrders = null;
+  orders = [];
   await signOutAdmin();
   currentSession = null;
   showLogin(tr("loggedOut"));
@@ -450,6 +488,7 @@ $("#saveHoursBtn").addEventListener("click", () => {
 
 function renderAll() {
   renderHome();
+  renderOrders();
   renderCollection("menu", "menuEditor", { category: true, badge: true, price: true, desc: true, folder: "menu" });
   renderCollection("offers", "offersEditor", { type: true, price: true, desc: true, folder: "offers" });
   renderCollection("banners", "bannersEditor", { title: true, text: true, folder: "banners" });
@@ -458,6 +497,86 @@ function renderAll() {
   renderContact();
   renderHours();
   setupUploads();
+}
+
+async function startOrdersFeed() {
+  if (unsubscribeOrders || !isFirebaseConfigured()) return;
+  unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders) => {
+    orders = incomingOrders;
+    renderOrders();
+  });
+}
+
+function renderOrders() {
+  const root = $("#ordersList");
+  if (!root) return;
+  if (!orders.length) {
+    root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("noOrders")}</p></article>`;
+    return;
+  }
+  root.innerHTML = orders.map((order) => `
+    <article class="admin-card order-card" data-order-id="${order.id}">
+      <div class="order-card-head">
+        <div>
+          <strong>#${order.id.slice(0, 8).toUpperCase()}</strong>
+          <span>${formatOrderDate(order.createdAt)}</span>
+        </div>
+        <mark class="order-status ${escapeAttr(order.status || "new")}">${statusLabel(order.status || "new")}</mark>
+      </div>
+      <div class="order-meta">
+        <p><span>${tr("orderCustomer")}</span><b>${escapeHtml(order.customer?.name || "")}</b></p>
+        <p><span>${tr("orderPhone")}</span><b>${escapeHtml(order.customer?.phone || "")}</b></p>
+        <p><span>${tr("orderTotal")}</span><b>${formatOrderTotal(order.subtotal)}</b></p>
+      </div>
+      <div class="order-items">
+        <span>${tr("orderItems")}</span>
+        ${order.items?.map((item) => `<p>${Number(item.quantity || 1)}x ${escapeHtml(item.name || "")} <b>${escapeHtml(item.price || "")}</b></p>`).join("") || ""}
+      </div>
+      ${order.customer?.notes ? `<p class="order-notes"><span>${tr("orderNotes")}</span>${escapeHtml(order.customer.notes)}</p>` : ""}
+      <label class="order-status-field">
+        <span>${tr("orderStatus")}</span>
+        <select data-order-status="${order.id}">
+          ${statusOption("new", order.status)}
+          ${statusOption("preparing", order.status)}
+          ${statusOption("completed", order.status)}
+        </select>
+      </label>
+    </article>
+  `).join("");
+  root.querySelectorAll("[data-order-status]").forEach((select) => {
+    select.addEventListener("change", async () => {
+      loading(true);
+      try {
+        await updateFirebaseOrderStatus(select.dataset.orderStatus, select.value);
+        note(tr("saved"));
+      } catch (error) {
+        note(localizedError(error, "saveFailed"));
+      } finally {
+        loading(false);
+      }
+    });
+  });
+}
+
+function statusOption(value, selected) {
+  return `<option value="${value}" ${value === (selected || "new") ? "selected" : ""}>${statusLabel(value)}</option>`;
+}
+
+function statusLabel(status) {
+  const keys = { new: "orderNew", preparing: "orderPreparing", completed: "orderCompleted" };
+  return tr(keys[status] || "orderNew");
+}
+
+function formatOrderTotal(value) {
+  return new Intl.NumberFormat(adminLang === "de" ? "de-DE" : "nl-NL", { style: "currency", currency: "EUR" }).format(Number(value || 0));
+}
+
+function formatOrderDate(timestamp) {
+  const date = timestamp?.toDate ? timestamp.toDate() : new Date();
+  return new Intl.DateTimeFormat(adminLang === "de" ? "de-DE" : adminLang === "ar" ? "ar" : "nl-NL", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(date);
 }
 
 function renderHome() {

@@ -9,6 +9,7 @@ const FIRESTORE_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-fires
 const CONTENT_COLLECTION = "siteContent";
 const CONTENT_DOC = "shawarmaTime";
 const ADMIN_COLLECTION = "admins";
+const ORDERS_COLLECTION = "orders";
 const DEFAULT_USERNAME = "admin";
 const DEFAULT_EMAIL = "admin@shawarma-time.local";
 const OWNER_EMAIL = "mustafa.chanel@hotmail.com";
@@ -151,6 +152,48 @@ export async function uploadFirebaseImage(file, folder = "menu") {
   return payload.secure_url;
 }
 
+export async function createFirebaseOrder(order) {
+  const firebase = await getFirebase();
+  if (!firebase) {
+    throw new Error(CONFIG_ERROR);
+  }
+  const cleanOrder = normalizeOrder(order);
+  const ref = await firebase.firestoreMod.addDoc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION), {
+    ...cleanOrder,
+    status: "new",
+    createdAt: firebase.firestoreMod.serverTimestamp(),
+    updatedAt: firebase.firestoreMod.serverTimestamp()
+  });
+  return ref.id;
+}
+
+export async function subscribeFirebaseOrders(callback) {
+  const firebase = await getFirebase();
+  if (!firebase) return () => {};
+  const queryRef = firebase.firestoreMod.query(
+    firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION),
+    firebase.firestoreMod.orderBy("createdAt", "desc"),
+    firebase.firestoreMod.limit(80)
+  );
+  return firebase.firestoreMod.onSnapshot(queryRef, (snapshot) => {
+    callback(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+  });
+}
+
+export async function updateFirebaseOrderStatus(orderId, status) {
+  const firebase = await getFirebase();
+  if (!firebase) {
+    throw new Error(CONFIG_ERROR);
+  }
+  if (!["new", "preparing", "completed"].includes(status)) {
+    throw new Error("Invalid order status.");
+  }
+  await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
+    status,
+    updatedAt: firebase.firestoreMod.serverTimestamp()
+  });
+}
+
 async function ensureAdminDoc(uid, username, email) {
   const firebase = await getFirebase();
   const ref = firebase.firestoreMod.doc(firebase.db, ADMIN_COLLECTION, uid);
@@ -198,6 +241,33 @@ function validateImage(file) {
   if (!file) throw new Error("No image selected.");
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) throw new Error("Only JPG, PNG and WEBP images are allowed.");
   if (file.size > MAX_IMAGE_SIZE) throw new Error("Image is too large. Maximum size is 5MB.");
+}
+
+function normalizeOrder(order) {
+  const items = Array.isArray(order?.items) ? order.items.slice(0, 40).map((item) => ({
+    id: String(item.id || "").slice(0, 120),
+    name: String(item.name || "").slice(0, 180),
+    price: String(item.price || "").slice(0, 40),
+    priceValue: Number(item.priceValue || 0),
+    quantity: Math.max(1, Math.min(99, Number(item.quantity || 1))),
+    image: String(item.image || "").slice(0, 1000)
+  })) : [];
+  if (!items.length) throw new Error("Order cart is empty.");
+  const customer = {
+    name: String(order?.customer?.name || "").trim().slice(0, 120),
+    phone: String(order?.customer?.phone || "").trim().slice(0, 80),
+    notes: String(order?.customer?.notes || "").trim().slice(0, 600)
+  };
+  if (!customer.name || !customer.phone) throw new Error("Customer name and phone are required.");
+  const subtotal = items.reduce((sum, item) => sum + item.priceValue * item.quantity, 0);
+  return {
+    customer,
+    items,
+    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+    subtotal: Number(subtotal.toFixed(2)),
+    currency: "EUR",
+    source: "website"
+  };
 }
 
 function authErrorMessage(error) {

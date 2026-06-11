@@ -562,6 +562,112 @@ html[dir="rtl"] .admin-sidebar nav button {
   gap: 16px;
 }
 
+.orders-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.order-card {
+  display: grid;
+  gap: 16px;
+}
+
+.order-card-head,
+.order-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.order-card-head strong {
+  display: block;
+  color: var(--gold);
+  font-size: 1.08rem;
+}
+
+.order-card-head span,
+.order-meta span,
+.order-items > span,
+.order-notes span {
+  display: block;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.order-status {
+  align-self: start;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 191, 88, .16);
+  color: var(--gold);
+  font-weight: 950;
+}
+
+.order-status.new {
+  background: rgba(255, 122, 26, .18);
+  color: #ffd39a;
+}
+
+.order-status.preparing {
+  background: rgba(255, 191, 88, .18);
+  color: #ffe2a8;
+}
+
+.order-status.completed {
+  background: rgba(37, 211, 102, .16);
+  color: #8dffb9;
+}
+
+.order-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.order-meta p,
+.order-items,
+.order-notes,
+.order-status-field {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 191, 88, .11);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .04);
+}
+
+.order-meta b {
+  color: var(--text);
+}
+
+.order-items {
+  display: grid;
+  gap: 8px;
+}
+
+.order-items p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: var(--text);
+}
+
+.order-items b {
+  color: var(--gold);
+}
+
+.order-notes {
+  color: var(--text);
+}
+
+.order-status-field {
+  max-width: 320px;
+}
+
 .media-card {
   border: 1px solid rgba(255, 191, 88, .13);
   border-radius: 16px;
@@ -706,6 +812,7 @@ html[dir="rtl"] .admin-toast {
   .editor-fields,
   .settings-grid,
   .hours-editor,
+  .order-meta,
   .media-grid {
     grid-template-columns: 1fr;
   }
