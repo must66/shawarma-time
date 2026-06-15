@@ -323,6 +323,42 @@ const orderingUi = {
     }
   }
 };
+const sectionTextFallbacks = {
+  featuredEyebrow: {
+    nl: "Populair in Venlo",
+    ar: "الأكثر طلباً في فينلو",
+    de: "Beliebt in Venlo",
+    en: "Popular in Venlo"
+  },
+  featuredTitle: {
+    nl: "Featured dishes",
+    ar: "أطباق مميزة",
+    de: "Empfohlene Gerichte",
+    en: "Featured dishes"
+  }
+};
+const serviceInfo = {
+  nl: [
+    ["Afhalen", "Bestel online en haal je maaltijd warm op in Venlo."],
+    ["Bezorgen", "Vul je adres in bij checkout en wij bevestigen de mogelijkheden."],
+    ["Veilig betalen", "Betaal met iDEAL via Mollie of kies contant/betalen in restaurant."]
+  ],
+  ar: [
+    ["استلام", "اطلب أونلاين واستلم وجبتك ساخنة في فينلو."],
+    ["توصيل", "أدخل عنوانك عند الدفع وسنؤكد إمكانية التوصيل."],
+    ["دفع آمن", "ادفع عبر iDEAL من Mollie أو اختر الدفع نقداً / في المطعم."]
+  ],
+  de: [
+    ["Abholen", "Online bestellen und dein Essen warm in Venlo abholen."],
+    ["Lieferung", "Adresse im Checkout eingeben, wir bestaetigen die Moeglichkeiten."],
+    ["Sicher bezahlen", "Mit iDEAL via Mollie bezahlen oder Bar/Restaurant waehlen."]
+  ],
+  en: [
+    ["Pickup", "Order online and pick up your meal hot in Venlo."],
+    ["Delivery", "Enter your address at checkout and we will confirm availability."],
+    ["Secure payment", "Pay with iDEAL via Mollie or choose cash/pay at restaurant."]
+  ]
+};
 
 function t(path) {
   const keys = path.split(".");
@@ -376,7 +412,9 @@ function applyLanguage() {
   });
   document.querySelectorAll("[data-section-text]").forEach((el) => {
     el.textContent = orderingUi[lang]?.sectionText?.[el.dataset.sectionText]
-      || localized(data.sectionText?.[el.dataset.sectionText], lang);
+      || localized(data.sectionText?.[el.dataset.sectionText], lang)
+      || localized(sectionTextFallbacks[el.dataset.sectionText], lang)
+      || el.textContent;
   });
   renderCart();
 }
@@ -457,6 +495,26 @@ function renderBanners() {
         <strong>${localized(banner.title, lang)}</strong>
         <span>${localized(banner.text, lang)}</span>
       </div>
+    </article>
+  `).join("");
+}
+
+function renderFeatured() {
+  const featured = data.menu
+    .filter((item) => ["popular", "offer", "new"].includes(item.badge))
+    .slice(0, 4);
+  $("#featuredGrid").innerHTML = (featured.length ? featured : data.menu.slice(0, 4)).map(itemCard).join("");
+  $("#featuredGrid").querySelectorAll("[data-add-cart]").forEach((button) => {
+    button.addEventListener("click", () => addToCart(button.dataset.addCart));
+  });
+}
+
+function renderServiceStrip() {
+  $("#serviceStrip").innerHTML = (serviceInfo[lang] || serviceInfo.nl).map(([title, text], index) => `
+    <article>
+      <span>${index === 0 ? "01" : index === 1 ? "02" : "03"}</span>
+      <strong>${title}</strong>
+      <p>${text}</p>
     </article>
   `).join("");
 }
@@ -812,7 +870,7 @@ async function submitCart(event) {
     cartForm.reset();
     renderCart();
   } catch (error) {
-    setStatus(customerSafeErrorMessage(error), true);
+    setStatus(customerSafeErrorMessage(error, paymentMethod), true);
   } finally {
     $("#submitOrderBtn").disabled = false;
   }
@@ -953,17 +1011,7 @@ async function redirectToMolliePayment(orderPayload) {
   const endpoint = paymentConfig.molliePaymentEndpoint;
   if (!endpoint) throw new Error(t("section.mollieUnavailable"));
   await assertMollieReady();
-  sessionStorage.setItem("shawarma-time-pending-online-order", JSON.stringify({
-    orderNumber: t("section.onlineOrderNumber"),
-    prepTime: t("section.defaultPrepTime"),
-    total: cartTotal(),
-    paymentMethod: "mollie",
-    paymentStatus: "pending",
-    customer: orderPayload.customer,
-    items: orderPayload.items,
-    status: "new",
-    createdAt: new Date().toISOString()
-  }));
+  const total = cartTotal();
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -982,6 +1030,20 @@ async function redirectToMolliePayment(orderPayload) {
   if (!response.ok || !payload.url) {
     throw new Error(payload.error || t("section.mollieUnavailable"));
   }
+  const orderNumber = payload.orderNumber || formatOrderNumber(payload.checkoutId || payload.paymentId);
+  sessionStorage.setItem("shawarma-time-pending-online-order", JSON.stringify({
+    checkoutId: payload.checkoutId || "",
+    paymentId: payload.paymentId || "",
+    orderNumber,
+    prepTime: t("section.defaultPrepTime"),
+    total,
+    paymentMethod: "mollie",
+    paymentStatus: "pending",
+    customer: orderPayload.customer,
+    items: orderPayload.items,
+    status: "new",
+    createdAt: new Date().toISOString()
+  }));
   window.location.href = payload.url;
 }
 
@@ -1031,6 +1093,8 @@ function render() {
   applyLanguage();
   renderHero();
   renderBanners();
+  renderFeatured();
+  renderServiceStrip();
   renderCategories();
   renderMenu();
   renderOffers();
@@ -1109,8 +1173,10 @@ function setStatus(message, isError) {
   status.classList.toggle("visible", Boolean(message));
 }
 
-function customerSafeErrorMessage(error) {
+function customerSafeErrorMessage(error, paymentMethod = "") {
   const message = String(error?.message || "");
+  if (paymentMethod === "mollie") return t("section.mollieUnavailable");
+  if (paymentMethod === "stripe") return t("section.stripeUnavailable");
   if (/missing|configured|config|api[_ -]?key|secret|service[_ -]?account|serverless|netlify|firebase|supabase|stack|referenceerror|typeerror|syntaxerror/i.test(message)) {
     return t("section.orderError");
   }

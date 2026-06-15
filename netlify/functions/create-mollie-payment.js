@@ -17,15 +17,17 @@ export async function handler(event) {
     return json(405, { error: "Method not allowed." });
   }
   if (!process.env.MOLLIE_API_KEY || !process.env.FIREBASE_SERVICE_ACCOUNT) {
-    return json(500, { error: "Mollie is not configured. Missing MOLLIE_API_KEY or FIREBASE_SERVICE_ACCOUNT." });
+    return json(500, { error: "Online payment is temporarily unavailable. Please choose cash or pay at restaurant." });
   }
 
   try {
     const payload = JSON.parse(event.body || "{}");
     const order = normalizeOrder(payload.order || {});
     const checkoutRef = getAdminDb().collection("mollieCheckouts").doc();
+    const orderNumber = formatOrderNumber(checkoutRef.id);
     await checkoutRef.set({
       order,
+      orderNumber,
       status: "pending",
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
@@ -57,10 +59,11 @@ export async function handler(event) {
     return json(200, {
       url: payment._links?.checkout?.href,
       checkoutId: checkoutRef.id,
-      paymentId: payment.id
+      paymentId: payment.id,
+      orderNumber
     });
-  } catch (error) {
-    return json(500, { error: error.message || "Could not create Mollie payment." });
+  } catch {
+    return json(500, { error: "Online payment is temporarily unavailable. Please choose cash or pay at restaurant." });
   }
 }
 
@@ -109,6 +112,10 @@ function normalizeOrder(order) {
     paymentStatus: "pending",
     source: "website"
   };
+}
+
+function formatOrderNumber(value) {
+  return `ST-${String(value || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
 function json(statusCode, body) {

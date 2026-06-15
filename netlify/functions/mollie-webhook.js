@@ -62,6 +62,7 @@ async function createPaidOrder(payment) {
 
   const order = {
     ...checkout.order,
+    orderNumber: checkout.orderNumber || formatOrderNumber(checkoutId),
     paymentMethod: "mollie",
     paymentStatus: "paid",
     orderStatus: "new",
@@ -77,7 +78,7 @@ async function createPaidOrder(payment) {
     orderId: orderRef.id,
     completedAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
-  await sendOrderEmail(orderRef.id, { ...checkout.order, paymentMethod: "mollie", paymentStatus: "paid" });
+  await sendOrderEmail(orderRef.id, { ...checkout.order, orderNumber: order.orderNumber, paymentMethod: "mollie", paymentStatus: "paid" });
 }
 
 async function markCheckout(payment, status) {
@@ -135,6 +136,10 @@ function htmlOrder(orderId, order) {
 
 function formatTotal(value) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(Number(value || 0));
+}
+
+function formatOrderNumber(value) {
+  return `ST-${String(value || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
 function escapeHtml(value) {

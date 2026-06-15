@@ -529,10 +529,47 @@ h1 {
   font-weight: 950;
 }
 
-.menu-grid, .offer-grid, .review-grid {
+.menu-grid, .offer-grid, .review-grid, .featured-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+}
+.featured-section {
+  background:
+    radial-gradient(circle at 14% 12%, rgba(255,191,88,.14), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+}
+.service-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: clamp(22px, 4vw, 42px) clamp(16px, 5vw, 72px);
+  border-block: 1px solid var(--line);
+  background: rgba(255,255,255,.025);
+}
+.service-strip article {
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  border: 1px solid rgba(255,191,88,.16);
+  border-radius: 18px;
+  padding: 18px;
+  background:
+    linear-gradient(145deg, rgba(255,122,26,.11), transparent 52%),
+    rgba(16, 7, 5, .82);
+}
+.service-strip span {
+  color: var(--gold);
+  font-weight: 950;
+}
+.service-strip strong {
+  color: #fff;
+  font-size: 1.2rem;
+}
+.service-strip p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
 }
 .food-card, .offer-card, .review-card, .social-card {
   border: 1px solid rgba(255,191,88,.14);
@@ -1411,7 +1448,7 @@ body.no-animations .btn {
     padding-top: 12px;
   }
   .main-nav.open { display: flex; }
-  .menu-grid, .offer-grid, .review-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .menu-grid, .offer-grid, .review-grid, .featured-grid, .service-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .contact-section, .about-section, .social-section, .checkout-layout { grid-template-columns: 1fr; }
   .checkout-summary { position: static; }
 }
@@ -1438,7 +1475,7 @@ body.no-animations .btn {
   }
   .hero-logo { margin-bottom: 18px; }
   .section-head { display: block; }
-  .banner-strip, .menu-grid, .offer-grid, .review-grid, .gallery-grid, .social-grid { grid-template-columns: 1fr; }
+  .banner-strip, .menu-grid, .offer-grid, .review-grid, .featured-grid, .gallery-grid, .social-grid, .service-strip { grid-template-columns: 1fr; }
   .gallery-grid figure:first-child { grid-row: auto; }
   .gallery-grid figure:first-child img, .food-card img, .offer-card img, .gallery-grid img { height: 270px; }
   .ad-banner { min-height: 190px; }

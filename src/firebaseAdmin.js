@@ -546,8 +546,8 @@ async function startOrdersFeed() {
     knownOrderIds = incomingIds;
     orders = incomingOrders;
     renderOrders();
-  }, (error) => {
-    ordersError = error?.message || String(error);
+  }, () => {
+    ordersError = "unavailable";
     renderOrders();
   });
 }
@@ -556,7 +556,7 @@ function renderOrders() {
   const root = $("#ordersList");
   if (!root) return;
   if (ordersError) {
-    root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("ordersError")} ${escapeHtml(ordersError)}</p></article>`;
+    root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("ordersError")}</p></article>`;
     return;
   }
   if (!orders.length) {
@@ -569,7 +569,7 @@ function renderOrders() {
     <article class="admin-card order-card ${readOrders.has(order.id) ? "" : "unread"}" data-order-id="${order.id}">
       <div class="order-card-head">
         <div>
-          <strong>#${order.id.slice(0, 8).toUpperCase()}</strong>
+          <strong>#${escapeHtml(order.orderNumber || order.id.slice(0, 8).toUpperCase())}</strong>
           <span>${formatOrderDate(order.createdAt)}</span>
         </div>
         <mark class="order-status ${escapeAttr(order.orderStatus || order.status || "new")}">${statusLabel(order.orderStatus || order.status || "new")}</mark>
