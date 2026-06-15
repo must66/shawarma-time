@@ -1,12 +1,12 @@
 [build]
   command = "npm run build"
-  publish = "."
+  publish = "dist"
   functions = "netlify/functions"
 
 [[headers]]
-  for = "/src/*"
+  for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
   for = "/*.html"
@@ -26,6 +26,11 @@
 
 [[redirects]]
   from = "/admin"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
   to = "/admin/index.html"
   status = 200
 

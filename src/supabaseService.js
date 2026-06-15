@@ -23,7 +23,7 @@ export async function getSupabase() {
     clientPromise = (async () => {
       const config = await getRuntimeConfig();
       if (!config.supabaseUrl || !config.supabaseAnonKey) return null;
-      const { createClient } = await import(CDN);
+      const { createClient } = await import(/* @vite-ignore */ CDN);
       return createClient(config.supabaseUrl, config.supabaseAnonKey, {
         auth: {
           persistSession: true,

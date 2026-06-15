@@ -36,9 +36,9 @@ export async function getFirebase() {
   if (!firebasePromise) {
     firebasePromise = (async () => {
       const [{ initializeApp }, authMod, firestoreMod] = await Promise.all([
-        import(APP_URL),
-        import(AUTH_URL),
-        import(FIRESTORE_URL)
+        import(/* @vite-ignore */ APP_URL),
+        import(/* @vite-ignore */ AUTH_URL),
+        import(/* @vite-ignore */ FIRESTORE_URL)
       ]);
       const app = initializeApp(firebaseConfig);
       return {
