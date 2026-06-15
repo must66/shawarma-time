@@ -1,5 +1,8 @@
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { defineConfig } from "vite";
+
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   build: {
@@ -7,9 +10,9 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        admin: resolve(__dirname, "admin/index.html"),
-        paymentSuccess: resolve(__dirname, "payment-success.html")
+        main: resolve(projectRoot, "index.html"),
+        admin: resolve(projectRoot, "admin/index.html"),
+        paymentSuccess: resolve(projectRoot, "payment-success.html")
       }
     }
   }
