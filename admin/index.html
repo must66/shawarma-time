@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Admin | Shawarma Time</title>
-    <link rel="stylesheet" href="../src/styles.css?v=20260611-order-audit" />
-    <link rel="stylesheet" href="../src/admin.css?v=20260611-order-audit" />
+    <link rel="stylesheet" href="../src/styles.css?v=20260616-platform-stable" />
+    <link rel="stylesheet" href="../src/admin.css?v=20260616-platform-stable" />
   </head>
   <body class="admin-body">
     <main class="admin-shell">
@@ -76,6 +76,20 @@
 
           <section id="ordersPanel" class="admin-panel">
             <div class="panel-head"><h2 data-admin-i18n="ordersTitle">Bestellingen</h2></div>
+            <div class="order-stats" id="orderStats"></div>
+            <div class="order-tools">
+              <input id="orderSearch" type="search" placeholder="Search order or customer" />
+              <select id="orderStatusFilter">
+                <option value="all">All statuses</option>
+                <option value="new">New</option>
+                <option value="accepted">Accepted</option>
+                <option value="preparing">Preparing</option>
+                <option value="ready">Ready</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
             <article class="admin-card"><p data-admin-i18n="ordersNote">Nieuwe bestellingen verschijnen hier automatisch.</p></article>
             <div class="orders-list" id="ordersList"></div>
           </section>
@@ -121,6 +135,6 @@
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=20260611-production-ready"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=20260616-platform-stable"></script>
   </body>
 </html>

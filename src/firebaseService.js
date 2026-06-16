@@ -158,14 +158,33 @@ export async function createFirebaseOrder(order) {
     throw new Error(CONFIG_ERROR);
   }
   const cleanOrder = normalizeOrder(order);
-  const ref = await firebase.firestoreMod.addDoc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION), {
+  const ref = firebase.firestoreMod.doc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION));
+  const orderNumber = formatOrderNumber(ref.id);
+  await firebase.firestoreMod.setDoc(ref, {
     ...cleanOrder,
+    orderNumber,
     status: "new",
     orderStatus: "new",
     createdAt: firebase.firestoreMod.serverTimestamp(),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   });
-  return ref.id;
+  return { id: ref.id, orderNumber };
+}
+
+export async function findFirebaseOrderByNumber(orderNumber) {
+  const firebase = await getFirebase();
+  if (!firebase) return null;
+  const normalized = String(orderNumber || "").trim().toUpperCase();
+  if (!normalized) return null;
+  const queryRef = firebase.firestoreMod.query(
+    firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION),
+    firebase.firestoreMod.where("orderNumber", "==", normalized),
+    firebase.firestoreMod.limit(1)
+  );
+  const snap = await firebase.firestoreMod.getDocs(queryRef);
+  if (snap.empty) return null;
+  const doc = snap.docs[0];
+  return { id: doc.id, ...doc.data() };
 }
 
 export async function subscribeFirebaseOrders(callback, onError) {
@@ -183,7 +202,6 @@ export async function subscribeFirebaseOrders(callback, onError) {
     },
     (error) => {
       if (onError) onError(error);
-      else console.error(error);
     }
   );
 }
@@ -193,7 +211,7 @@ export async function updateFirebaseOrderStatus(orderId, status) {
   if (!firebase) {
     throw new Error(CONFIG_ERROR);
   }
-  if (!["new", "preparing", "ready", "delivered", "completed", "cancelled"].includes(status)) {
+  if (!["new", "accepted", "preparing", "ready", "delivered", "completed", "cancelled"].includes(status)) {
     throw new Error("Invalid order status.");
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
@@ -284,6 +302,10 @@ function normalizeOrder(order) {
     paymentStatus: paymentMethod === "stripe" || paymentMethod === "mollie" ? "pending" : "unpaid",
     source: "website"
   };
+}
+
+function formatOrderNumber(value) {
+  return `ST-${String(value || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
 function authErrorMessage(error) {

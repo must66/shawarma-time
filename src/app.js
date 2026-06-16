@@ -1,6 +1,6 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseOrder } from "./firebaseService.js";
+import { createFirebaseOrder, findFirebaseOrderByNumber } from "./firebaseService.js?v=20260616-platform-stable";
 import { paymentConfig } from "./paymentConfig.js";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
@@ -33,6 +33,7 @@ const routeSections = {
   "/gallery": "gallery",
   "/checkout": "checkout",
   "/success": "success",
+  "/payment-success": "success",
   "/failed": "failed",
   "/track": "track",
   "/about": "about",
@@ -89,11 +90,13 @@ const orderingUi = {
       trackEyebrow: "Bestelstatus",
       trackTitle: "Volg je bestelling",
       orderReceived: "Bestelling ontvangen",
+      accepted: "Geaccepteerd",
       preparing: "In bereiding",
       readyForPickup: "Klaar voor afhalen",
       delivered: "Afgeleverd",
       cancelled: "Geannuleerd",
       trackingHint: "Vul je ordernummer in of plaats een bestelling om de status te zien.",
+      trackingNotFound: "We konden dit ordernummer niet vinden. Controleer het nummer of bel het restaurant.",
       directions: "Route",
       openNow: "Nu open",
       closedNow: "Nu gesloten"
@@ -146,11 +149,13 @@ const orderingUi = {
       trackEyebrow: "حالة الطلب",
       trackTitle: "تتبع طلبك",
       orderReceived: "تم استلام الطلب",
+      accepted: "تم قبول الطلب",
       preparing: "قيد التحضير",
       readyForPickup: "جاهز للاستلام",
       delivered: "تم التسليم",
       cancelled: "ملغي",
       trackingHint: "أدخل رقم الطلب أو قم بإنشاء طلب لمتابعة الحالة.",
+      trackingNotFound: "لم نتمكن من العثور على رقم الطلب. تحقق من الرقم أو اتصل بالمطعم.",
       directions: "الاتجاهات",
       openNow: "مفتوح الآن",
       closedNow: "مغلق الآن"
@@ -203,11 +208,13 @@ const orderingUi = {
       trackEyebrow: "Bestellstatus",
       trackTitle: "Bestellung verfolgen",
       orderReceived: "Bestellung erhalten",
+      accepted: "Angenommen",
       preparing: "In Vorbereitung",
       readyForPickup: "Bereit zur Abholung",
       delivered: "Geliefert",
       cancelled: "Storniert",
       trackingHint: "Gib deine Bestellnummer ein oder erstelle eine Bestellung, um den Status zu sehen.",
+      trackingNotFound: "Diese Bestellnummer wurde nicht gefunden. Bitte pruefe die Nummer oder rufe das Restaurant an.",
       directions: "Route",
       openNow: "Jetzt geoeffnet",
       closedNow: "Jetzt geschlossen"
@@ -310,11 +317,13 @@ const orderingUi = {
       trackEyebrow: "Order status",
       trackTitle: "Track your order",
       orderReceived: "Order Received",
+      accepted: "Accepted",
       preparing: "Preparing",
       readyForPickup: "Ready for Pickup",
       delivered: "Delivered",
       cancelled: "Cancelled",
       trackingHint: "Enter your order number or place an order to see the status.",
+      trackingNotFound: "We could not find this order number. Please check it or call the restaurant.",
       directions: "Directions",
       openNow: "Open now",
       closedNow: "Closed now",
@@ -863,9 +872,9 @@ async function submitCart(event) {
       return;
     }
     const total = cartTotal();
-    const orderId = await createFirebaseOrder(orderPayload);
-    notifyOrderCreated(orderId, orderPayload, total);
-    showOrderSuccess(orderId, total, paymentMethod, orderPayload);
+    const savedOrder = await createFirebaseOrder(orderPayload);
+    notifyOrderCreated(savedOrder.id, orderPayload, total);
+    showOrderSuccess(savedOrder, total, paymentMethod, orderPayload);
     cart = [];
     cartForm.reset();
     renderCart();
@@ -876,8 +885,9 @@ async function submitCart(event) {
   }
 }
 
-function showOrderSuccess(orderId, total, paymentMethod, orderPayload) {
-  const orderNumber = formatOrderNumber(orderId);
+function showOrderSuccess(savedOrder, total, paymentMethod, orderPayload) {
+  const orderId = typeof savedOrder === "string" ? savedOrder : savedOrder?.id;
+  const orderNumber = typeof savedOrder === "string" ? formatOrderNumber(savedOrder) : savedOrder?.orderNumber || formatOrderNumber(orderId);
   const successData = {
     orderId,
     orderNumber,
@@ -930,10 +940,11 @@ function renderTracking(order = getLastOrder()) {
   const root = $("#trackSteps");
   if (!root) return;
   const current = order?.status || "new";
-  const statuses = ["new", "preparing", "ready", "delivered", "cancelled"];
+  const statuses = ["new", "accepted", "preparing", "ready", "delivered", "cancelled"];
   const index = statuses.indexOf(current);
   const labels = {
     new: t("section.orderReceived"),
+    accepted: t("section.accepted"),
     preparing: t("section.preparing"),
     ready: t("section.readyForPickup"),
     delivered: t("section.delivered"),
@@ -1246,11 +1257,27 @@ $("#trackForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const value = new FormData(event.currentTarget).get("orderNumber");
   const lastOrder = getLastOrder();
-  if (lastOrder?.orderNumber && String(value || "").trim().toUpperCase() === lastOrder.orderNumber.toUpperCase()) {
+  const requested = String(value || "").trim().toUpperCase();
+  if (lastOrder?.orderNumber && requested === lastOrder.orderNumber.toUpperCase()) {
     renderTracking(lastOrder);
     return;
   }
-  renderTracking(null);
+  $("#trackNote").textContent = t("section.submitOrder");
+  findFirebaseOrderByNumber(requested).then((order) => {
+    if (order) {
+      renderTracking({
+        ...order,
+        status: order.orderStatus || order.status || "new",
+        orderNumber: order.orderNumber || requested
+      });
+      return;
+    }
+    renderTracking(null);
+    $("#trackNote").textContent = t("section.trackingNotFound");
+  }).catch(() => {
+    renderTracking(null);
+    $("#trackNote").textContent = t("section.trackingNotFound");
+  });
 });
 
 if (document.readyState === "complete") {

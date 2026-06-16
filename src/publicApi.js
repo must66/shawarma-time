@@ -1,5 +1,5 @@
 import { categoryOrder, defaultSiteData, localized } from "./data.js";
-import { isFirebaseConfigured, loadFirebaseSiteData, subscribeFirebaseSiteData } from "./firebaseService.js";
+import { isFirebaseConfigured, loadFirebaseSiteData, subscribeFirebaseSiteData } from "./firebaseService.js?v=20260616-platform-stable";
 import { getSupabase } from "./supabaseService.js";
 
 export async function fetchPublicSiteData() {

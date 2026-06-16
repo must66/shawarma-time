@@ -9,7 +9,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js";
+} from "./firebaseService.js?v=20260616-platform-stable";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -24,6 +24,8 @@ let orders = [];
 let unsubscribeOrders = null;
 let ordersError = "";
 let knownOrderIds = new Set();
+let orderSearch = "";
+let orderStatusFilter = "all";
 const readOrdersKey = "shawarma-time-read-orders";
 
 const adminText = {
@@ -505,6 +507,16 @@ document.querySelectorAll("[data-add]").forEach((button) => {
   });
 });
 
+$("#orderSearch")?.addEventListener("input", (event) => {
+  orderSearch = event.target.value;
+  renderOrders();
+});
+
+$("#orderStatusFilter")?.addEventListener("change", (event) => {
+  orderStatusFilter = event.target.value;
+  renderOrders();
+});
+
 $("#saveHomeBtn").addEventListener("click", () => {
   collectFields($("#homeForm"), siteData.homepage);
   saveContent(tr("homepageSaved"));
@@ -555,17 +567,19 @@ async function startOrdersFeed() {
 function renderOrders() {
   const root = $("#ordersList");
   if (!root) return;
+  renderOrderStats();
   if (ordersError) {
     root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("ordersError")}</p></article>`;
     return;
   }
-  if (!orders.length) {
+  const visibleOrders = filteredOrders();
+  if (!visibleOrders.length) {
     root.innerHTML = `<article class="admin-card"><p class="form-note">${tr("noOrders")}</p></article>`;
     updateOrdersBadge();
     return;
   }
   const readOrders = getReadOrders();
-  root.innerHTML = orders.map((order) => `
+  root.innerHTML = visibleOrders.map((order) => `
     <article class="admin-card order-card ${readOrders.has(order.id) ? "" : "unread"}" data-order-id="${order.id}">
       <div class="order-card-head">
         <div>
@@ -577,6 +591,8 @@ function renderOrders() {
       <div class="order-meta">
         <p><span>${tr("orderCustomer")}</span><b>${escapeHtml(order.customer?.name || "")}</b></p>
         <p><span>${tr("orderPhone")}</span><b>${escapeHtml(order.customer?.phone || "")}</b></p>
+        <p><span>Email</span><b>${escapeHtml(order.customer?.email || "-")}</b></p>
+        <p><span>Fulfillment</span><b>${escapeHtml(order.customer?.fulfillment || "pickup")}</b></p>
         <p><span>${tr("orderTotal")}</span><b>${formatOrderTotal(order.subtotal)}</b></p>
         <p><span>${tr("paymentMethod")}</span><b>${paymentMethodLabel(order.paymentMethod)}</b></p>
         <p><span>${tr("paymentStatus")}</span><b>${paymentStatusLabel(order.paymentStatus)}</b></p>
@@ -590,6 +606,7 @@ function renderOrders() {
         <span>${tr("orderStatus")}</span>
         <select data-order-status="${order.id}">
           ${statusOption("new", order.orderStatus || order.status)}
+          ${statusOption("accepted", order.orderStatus || order.status)}
           ${statusOption("preparing", order.orderStatus || order.status)}
           ${statusOption("ready", order.orderStatus || order.status)}
           ${statusOption("delivered", order.orderStatus || order.status)}
@@ -597,6 +614,7 @@ function renderOrders() {
           ${statusOption("cancelled", order.orderStatus || order.status)}
         </select>
       </label>
+      <button class="btn ghost" type="button" data-print-order="${order.id}">Print kitchen ticket</button>
     </article>
   `).join("");
   root.querySelectorAll("[data-order-status]").forEach((select) => {
@@ -612,7 +630,75 @@ function renderOrders() {
       }
     });
   });
+  root.querySelectorAll("[data-print-order]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const order = orders.find((entry) => entry.id === button.dataset.printOrder);
+      if (order) printKitchenTicket(order);
+    });
+  });
   updateOrdersBadge();
+}
+
+function filteredOrders() {
+  const query = normalizeSearch(orderSearch);
+  return orders.filter((order) => {
+    const status = order.orderStatus || order.status || "new";
+    if (orderStatusFilter !== "all" && status !== orderStatusFilter) return false;
+    if (!query) return true;
+    return normalizeSearch([
+      order.orderNumber,
+      order.id,
+      order.customer?.name,
+      order.customer?.phone,
+      order.customer?.email
+    ].join(" ")).includes(query);
+  });
+}
+
+function renderOrderStats() {
+  const root = $("#orderStats");
+  if (!root) return;
+  const today = new Date().toDateString();
+  const todayOrders = orders.filter((order) => orderDate(order).toDateString() === today);
+  const openOrders = orders.filter((order) => !["delivered", "completed", "cancelled"].includes(order.orderStatus || order.status || "new"));
+  const revenue = todayOrders
+    .filter((order) => order.paymentStatus !== "cancelled")
+    .reduce((sum, order) => sum + Number(order.subtotal || 0), 0);
+  root.innerHTML = `
+    <article><span>Today</span><strong>${todayOrders.length}</strong></article>
+    <article><span>Open</span><strong>${openOrders.length}</strong></article>
+    <article><span>Revenue</span><strong>${formatOrderTotal(revenue)}</strong></article>
+    <article><span>Unread</span><strong>${orders.filter((order) => !getReadOrders().has(order.id)).length}</strong></article>
+  `;
+}
+
+function orderDate(order) {
+  return order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || Date.now());
+}
+
+function normalizeSearch(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function printKitchenTicket(order) {
+  const lines = [
+    "SHAWARMA TIME",
+    `Order: ${order.orderNumber || order.id.slice(0, 8).toUpperCase()}`,
+    `Customer: ${order.customer?.name || "-"}`,
+    `Phone: ${order.customer?.phone || "-"}`,
+    `Type: ${order.customer?.fulfillment || "pickup"}`,
+    "",
+    ...(order.items || []).map((item) => `${Number(item.quantity || 1)}x ${item.name || "Item"} ${item.price || ""}`),
+    "",
+    `Notes: ${order.customer?.notes || "-"}`,
+    `Total: ${formatOrderTotal(order.subtotal)}`
+  ];
+  const win = window.open("", "_blank", "width=420,height=640");
+  if (!win) return;
+  win.document.write(`<pre style="font-family:monospace;font-size:15px;line-height:1.5;white-space:pre-wrap">${escapeHtml(lines.join("\n"))}</pre>`);
+  win.document.close();
+  win.focus();
+  win.print();
 }
 
 function statusOption(value, selected) {
@@ -620,12 +706,15 @@ function statusOption(value, selected) {
 }
 
 function statusLabel(status) {
+  if (status === "accepted") {
+    return adminLang === "ar" ? "تم قبول الطلب" : adminLang === "de" ? "Angenommen" : "Geaccepteerd";
+  }
   const fallback = {
     nl: { ready: "Klaar voor afhalen", delivered: "Afgeleverd", cancelled: "Geannuleerd" },
     ar: { ready: "جاهز للاستلام", delivered: "تم التسليم", cancelled: "ملغي" },
     de: { ready: "Bereit zur Abholung", delivered: "Geliefert", cancelled: "Storniert" }
   };
-  const keys = { new: "orderNew", preparing: "orderPreparing", ready: "orderReady", delivered: "orderDelivered", completed: "orderCompleted", cancelled: "orderCancelled" };
+  const keys = { new: "orderNew", accepted: "orderAccepted", preparing: "orderPreparing", ready: "orderReady", delivered: "orderDelivered", completed: "orderCompleted", cancelled: "orderCancelled" };
   const translated = tr(keys[status] || "orderNew");
   if (translated === keys[status]) return fallback[adminLang]?.[status] || fallback.nl[status] || tr("orderNew");
   return translated;
