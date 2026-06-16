@@ -4,6 +4,7 @@ import {
   loadFirebaseSiteData,
   saveFirebaseSiteData,
   signOutAdmin,
+  signInAdmin,
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
@@ -487,8 +488,9 @@ $("#loginForm").addEventListener("submit", async (event) => {
     if (username !== temporaryAdminCredentials.username || password !== temporaryAdminCredentials.password) {
       throw new Error("Temporary credentials are incorrect.");
     }
+    const user = await signInAdmin(username, password);
     await showDashboard({
-      user: { uid: "temporary-admin", email: "admin@shawarma-time.local" },
+      user,
       admin: { username: "admin", role: "temporary-admin", active: true }
     });
   } catch (error) {
