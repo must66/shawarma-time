@@ -1,10 +1,8 @@
 import { badgeOptions, categoryOrder, defaultSiteData, loadSiteData, saveSiteData, ui } from "./data.js";
 import {
-  getAdminSession,
   isFirebaseConfigured,
   loadFirebaseSiteData,
   saveFirebaseSiteData,
-  signInAdmin,
   signOutAdmin,
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
@@ -15,6 +13,10 @@ const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
 const imageAccept = ".jpg,.jpeg,.png,.webp";
 const adminLangKey = "shawarma-time-admin-lang";
+const temporaryAdminCredentials = {
+  username: "admin",
+  password: "00000000"
+};
 
 let siteData = loadSiteData();
 let adminLang = localStorage.getItem(adminLangKey) || "nl";
@@ -33,7 +35,7 @@ const adminText = {
     brandAdmin: "Beheer",
     brandCms: "Firebase CMS",
     loginTitle: "Veilige admin login",
-    username: "Gebruikersnaam of e-mail",
+    username: "Gebruikersnaam",
     password: "Wachtwoord",
     login: "Inloggen",
     logout: "Uitloggen",
@@ -136,7 +138,7 @@ const adminText = {
     brandAdmin: "الإدارة",
     brandCms: "نظام Firebase",
     loginTitle: "تسجيل دخول آمن للإدارة",
-    username: "اسم المستخدم أو البريد الإلكتروني",
+    username: "اسم المستخدم",
     password: "كلمة المرور",
     login: "تسجيل الدخول",
     logout: "تسجيل الخروج",
@@ -239,7 +241,7 @@ const adminText = {
     brandAdmin: "Admin",
     brandCms: "Firebase CMS",
     loginTitle: "Sicherer Admin-Login",
-    username: "Benutzername oder E-Mail",
+    username: "Benutzername",
     password: "Passwort",
     login: "Einloggen",
     logout: "Ausloggen",
@@ -365,6 +367,7 @@ function localizedError(error, fallbackKey) {
   const message = error?.message || "";
   if (message.includes("Firebase is not configured")) return tr("firebaseMissing");
   if (message.includes("Cloudinary is not configured")) return tr("cloudinaryMissing");
+  if (message.includes("Temporary credentials")) return errorText("badLogin");
   if (message.includes("Username or password") || message.includes("incorrect")) return errorText("badLogin");
   if (message.includes("Admin user was not found")) return errorText("adminNotFound");
   if (message.includes("Enable Email/Password")) return errorText("emailPassword");
@@ -463,8 +466,16 @@ $("#loginForm").addEventListener("submit", async (event) => {
   loading(true);
   try {
     const form = new FormData(event.currentTarget);
-    const session = await signInAdmin(form.get("username"), form.get("password"));
-    await showDashboard(session);
+    // Replace with secure authentication before production.
+    const username = String(form.get("username") || "").trim();
+    const password = String(form.get("password") || "");
+    if (username !== temporaryAdminCredentials.username || password !== temporaryAdminCredentials.password) {
+      throw new Error("Temporary credentials are incorrect.");
+    }
+    await showDashboard({
+      user: { uid: "temporary-admin", email: "admin@shawarma-time.local" },
+      admin: { username: "admin", role: "temporary-admin", active: true }
+    });
   } catch (error) {
     showLogin(localizedError(error, "loginFailed"));
   } finally {
@@ -1019,7 +1030,4 @@ function escapeAttr(value) {
 }
 
 applyAdminLanguage();
-getAdminSession().then((session) => {
-  if (session) showDashboard(session);
-  else showLogin(isFirebaseConfigured() ? "" : tr("firebaseMissing"));
-});
+showLogin("");
