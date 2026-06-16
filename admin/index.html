@@ -41,10 +41,7 @@
             <button data-panel="homePanel" class="active"><span>D</span><b data-admin-i18n="navDashboard">Dashboard</b></button>
             <button data-panel="ordersPanel" id="ordersNavBtn"><span>O</span><b data-admin-i18n="navOrders">Bestellingen</b><em class="nav-badge hidden" id="ordersBadge">0</em></button>
             <button data-panel="menuPanel"><span>M</span><b data-admin-i18n="navMenu">Menu</b></button>
-            <button data-panel="offersPanel"><span>%</span><b data-admin-i18n="navOffers">Aanbiedingen</b></button>
-            <button data-panel="reviewsPanel"><span>R</span><b data-admin-i18n="navReviews">Reviews</b></button>
-            <button data-panel="bannersPanel"><span>B</span><b data-admin-i18n="navBanners">Banners</b></button>
-            <button data-panel="galleryPanel"><span>G</span><b data-admin-i18n="navGallery">Galerij</b></button>
+            <button data-panel="categoriesPanel"><span>C</span><b data-admin-i18n="navCategories">Categorieen</b></button>
             <button data-panel="contactPanel"><span>S</span><b data-admin-i18n="navSettings">Instellingen</b></button>
             <button data-panel="notificationsPanel"><span>N</span><b data-admin-i18n="navNotifications">Meldingen</b></button>
           </nav>
@@ -99,24 +96,9 @@
             <div class="editor-list" id="menuEditor"></div>
           </section>
 
-          <section id="offersPanel" class="admin-panel">
-            <div class="panel-head"><h2 data-admin-i18n="offersTitle">Aanbiedingen</h2><button class="btn primary" data-add="offers" type="button" data-admin-i18n="addOffer">Aanbieding toevoegen</button></div>
-            <div class="editor-list" id="offersEditor"></div>
-          </section>
-
-          <section id="reviewsPanel" class="admin-panel">
-            <div class="panel-head"><h2 data-admin-i18n="reviewsTitle">Reviews</h2><button class="btn primary" data-add="reviews" type="button" data-admin-i18n="addReview">Review toevoegen</button></div>
-            <div class="editor-list" id="reviewsEditor"></div>
-          </section>
-
-          <section id="bannersPanel" class="admin-panel">
-            <div class="panel-head"><h2 data-admin-i18n="bannersTitle">Banners</h2><button class="btn primary" data-add="banners" type="button" data-admin-i18n="addBanner">Banner toevoegen</button></div>
-            <div class="editor-list" id="bannersEditor"></div>
-          </section>
-
-          <section id="galleryPanel" class="admin-panel">
-            <div class="panel-head"><h2 data-admin-i18n="galleryTitle">Galerij</h2><button class="btn primary" data-add="gallery" type="button" data-admin-i18n="addPhoto">Foto toevoegen</button></div>
-            <div class="editor-list" id="galleryEditor"></div>
+          <section id="categoriesPanel" class="admin-panel">
+            <div class="panel-head"><h2 data-admin-i18n="categoriesTitle">Categorieen</h2><button class="btn primary" id="addCategoryBtn" type="button" data-admin-i18n="addCategory">Categorie toevoegen</button></div>
+            <div class="editor-list" id="categoriesEditor"></div>
           </section>
 
           <section id="contactPanel" class="admin-panel">
@@ -135,6 +117,6 @@
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=20260616-temp-admin-login"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=20260617-ordering-simplified"></script>
   </body>
 </html>

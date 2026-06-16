@@ -471,6 +471,10 @@ html[dir="rtl"] .admin-sidebar nav button {
   grid-template-columns: 1fr minmax(128px, auto);
 }
 
+.editor-card.category-editor {
+  grid-template-columns: 1fr minmax(128px, auto);
+}
+
 .editor-card::before,
 .media-card::before,
 .preview-shell::before {

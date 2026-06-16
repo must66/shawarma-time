@@ -8,6 +8,8 @@ let activeCategory = "all";
 let data = loadSiteData();
 let unsubscribeRealtime = null;
 let cart = [];
+let modalProductId = null;
+let modalQuantity = 1;
 const isProduction = !["localhost", "127.0.0.1", ""].includes(window.location.hostname);
 
 if (isProduction) {
@@ -28,19 +30,13 @@ if (isProduction) {
 const $ = (selector) => document.querySelector(selector);
 const routeSections = {
   "/": "home",
-  "/menu": "menu",
-  "/offers": "offers",
-  "/gallery": "gallery",
+  "/menu": "home",
   "/checkout": "checkout",
   "/success": "success",
   "/payment-success": "success",
   "/failed": "failed",
   "/track": "track",
-  "/about": "about",
-  "/hours": "hours",
-  "/contact": "contact",
-  "/reviews": "reviews",
-  "/socials": "socials"
+  "/contact": "contact"
 };
 const orderingUi = {
   nl: {
@@ -99,7 +95,15 @@ const orderingUi = {
       trackingNotFound: "We konden dit ordernummer niet vinden. Controleer het nummer of bel het restaurant.",
       directions: "Route",
       openNow: "Nu open",
-      closedNow: "Nu gesloten"
+      closedNow: "Nu gesloten",
+      orderNow: "Bestel nu",
+      addToBasket: "Toevoegen aan mandje",
+      addOns: "Extra's",
+      extraGarlic: "Extra knoflooksaus",
+      extraSpicy: "Extra pittige saus",
+      extraCheese: "Extra kaas",
+      pickupDeliveryInfo: "Afhalen en bezorgen",
+      openingHours: "Openingstijden"
     }
   },
   ar: {
@@ -158,7 +162,15 @@ const orderingUi = {
       trackingNotFound: "لم نتمكن من العثور على رقم الطلب. تحقق من الرقم أو اتصل بالمطعم.",
       directions: "الاتجاهات",
       openNow: "مفتوح الآن",
-      closedNow: "مغلق الآن"
+      closedNow: "مغلق الآن",
+      orderNow: "اطلب الآن",
+      addToBasket: "أضف إلى السلة",
+      addOns: "إضافات",
+      extraGarlic: "صلصة ثوم إضافية",
+      extraSpicy: "صلصة حارة إضافية",
+      extraCheese: "جبنة إضافية",
+      pickupDeliveryInfo: "استلام وتوصيل",
+      openingHours: "ساعات العمل"
     }
   },
   de: {
@@ -217,7 +229,15 @@ const orderingUi = {
       trackingNotFound: "Diese Bestellnummer wurde nicht gefunden. Bitte pruefe die Nummer oder rufe das Restaurant an.",
       directions: "Route",
       openNow: "Jetzt geoeffnet",
-      closedNow: "Jetzt geschlossen"
+      closedNow: "Jetzt geschlossen",
+      orderNow: "Jetzt bestellen",
+      addToBasket: "In den Warenkorb",
+      addOns: "Extras",
+      extraGarlic: "Extra Knoblauchsauce",
+      extraSpicy: "Extra scharfe Sauce",
+      extraCheese: "Extra Kaese",
+      pickupDeliveryInfo: "Abholung und Lieferung",
+      openingHours: "Oeffnungszeiten"
     }
   },
   en: {
@@ -327,6 +347,14 @@ const orderingUi = {
       directions: "Directions",
       openNow: "Open now",
       closedNow: "Closed now",
+      orderNow: "Order now",
+      addToBasket: "Add to basket",
+      addOns: "Add-ons",
+      extraGarlic: "Extra garlic sauce",
+      extraSpicy: "Extra spicy sauce",
+      extraCheese: "Extra cheese",
+      pickupDeliveryInfo: "Pickup and delivery",
+      openingHours: "Opening hours",
       address: "Address",
       phone: "Phone"
     }
@@ -371,6 +399,12 @@ const serviceInfo = {
 
 function t(path) {
   const keys = path.split(".");
+  if (keys[0] === "categories" && keys[1]) {
+    return localized(data.categoryLabels?.[keys[1]], lang)
+      || keys.reduce((value, key) => value?.[key], orderingUi[lang])
+      || keys.reduce((value, key) => value?.[key], ui[lang])
+      || keys[1];
+  }
   return keys.reduce((value, key) => value?.[key], orderingUi[lang])
     || keys.reduce((value, key) => value?.[key], ui[lang])
     || path;
@@ -443,9 +477,29 @@ function renderHero() {
   $("#heroTitle").textContent = localized(data.homepage.title, lang);
   $("#heroSlogan").textContent = localized(data.homepage.slogan, lang);
   $("#heroIntro").textContent = localized(data.homepage.intro, lang);
-  $("#aboutText").textContent = localized(data.homepage.about, lang);
   $("#heroWhatsapp").href = whatsappHref(data.settings.phone);
   $("#heroWhatsapp").textContent = t("section.whatsapp");
+  renderOrderingMeta();
+}
+
+function renderOrderingMeta() {
+  const root = $("#orderingMeta");
+  if (!root) return;
+  const openState = isOpenNow(data.settings.hours);
+  root.innerHTML = `
+    <article class="open-state ${openState.open ? "open" : "closed"}">
+      <span>${openState.open ? t("section.openNow") : t("section.closedNow")}</span>
+      <strong>${escapeHtml(openState.today || "")}</strong>
+    </article>
+    <article>
+      <span>${t("section.pickupDeliveryInfo")}</span>
+      <strong>${t("section.pickup")} / ${t("section.delivery")}</strong>
+    </article>
+    <article>
+      <span>${t("section.phone")}</span>
+      <strong>${escapeHtml(data.settings.phone || "")}</strong>
+    </article>
+  `;
 }
 
 function renderDesign() {
@@ -551,7 +605,7 @@ function renderBadge(badge) {
 
 function itemCard(item) {
   return `
-    <article class="food-card">
+    <article class="food-card" data-product-open="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(localized(item.name, lang))}">
       <div class="food-image">
         <img src="${item.image}" alt="${localized(item.name, lang)}" loading="lazy" decoding="async" />
         ${renderBadge(item.badge)}
@@ -562,7 +616,7 @@ function itemCard(item) {
         <p>${localized(item.desc, lang)}</p>
         <div class="food-card-bottom">
           <strong>${item.price}</strong>
-          <button class="btn tiny add-button" type="button" data-add-cart="${encodeAttr(item.id)}">${t("section.addToCart")}</button>
+          <button class="btn tiny add-button" type="button" data-add-cart="${encodeAttr(item.id)}" aria-label="${encodeAttr(t("section.addToBasket"))}">+</button>
         </div>
       </div>
     </article>
@@ -570,10 +624,22 @@ function itemCard(item) {
 }
 
 function renderMenu() {
-  const items = activeCategory === "all" ? data.menu : data.menu.filter((item) => item.category === activeCategory);
+  const availableItems = data.menu.filter((item) => item.available !== false);
+  const items = activeCategory === "all" ? availableItems : availableItems.filter((item) => item.category === activeCategory);
   $("#menuGrid").innerHTML = items.map(itemCard).join("");
   $("#menuGrid").querySelectorAll("[data-add-cart]").forEach((button) => {
-    button.addEventListener("click", () => addToCart(button.dataset.addCart));
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      addToCart(button.dataset.addCart);
+    });
+  });
+  $("#menuGrid").querySelectorAll("[data-product-open]").forEach((card) => {
+    card.addEventListener("click", () => openProductModal(card.dataset.productOpen));
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openProductModal(card.dataset.productOpen);
+    });
   });
 }
 
@@ -716,18 +782,59 @@ function renderContact() {
   $("#directionsBtn").href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.settings.address)}`;
 }
 
-function addToCart(itemId) {
+function openProductModal(itemId) {
+  const item = data.menu.find((entry) => entry.id === itemId);
+  const modal = $("#productModal");
+  if (!item || !modal) return;
+  modalProductId = itemId;
+  modalQuantity = 1;
+  $("#productModalImage").src = item.image;
+  $("#productModalImage").alt = localized(item.name, lang);
+  $("#productModalCategory").textContent = t(`categories.${item.category}`);
+  $("#productModalName").textContent = localized(item.name, lang);
+  $("#productModalDesc").textContent = localized(item.desc, lang);
+  $("#productModalPrice").textContent = item.price;
+  $("#productQty").textContent = String(modalQuantity);
+  modal.querySelectorAll(".product-options input").forEach((input) => {
+    input.checked = false;
+  });
+  modal.showModal();
+}
+
+function closeProductModal() {
+  const modal = $("#productModal");
+  if (modal?.open) modal.close();
+}
+
+function changeModalQuantity(delta) {
+  modalQuantity = Math.max(1, modalQuantity + delta);
+  $("#productQty").textContent = String(modalQuantity);
+}
+
+function addModalProductToCart() {
+  if (!modalProductId) return;
+  const options = [...document.querySelectorAll("#productModal .product-options input:checked")]
+    .map((input) => input.value);
+  addToCart(modalProductId, modalQuantity, options);
+  closeProductModal();
+}
+
+function addToCart(itemId, quantity = 1, options = []) {
   const item = data.menu.find((entry) => entry.id === itemId);
   if (!item) return;
-  const existing = cart.find((entry) => entry.id === itemId);
-  if (existing) existing.quantity += 1;
+  const optionKey = options.join(",");
+  const existing = cart.find((entry) => entry.id === itemId && (entry.optionKey || "") === optionKey);
+  if (existing) existing.quantity += quantity;
   else cart.push({
     id: item.id,
+    cartId: `${item.id}-${optionKey || "plain"}`,
+    optionKey,
     name: localized(item.name, lang),
     price: item.price,
     priceValue: priceNumber(item.price),
     image: item.image,
-    quantity: 1
+    quantity,
+    options
   });
   renderCart();
   setStatus(`${localized(item.name, lang)} ${t("section.addedToCart")}`, false);
@@ -758,18 +865,19 @@ function renderCart() {
     list.innerHTML = `<p class="cart-empty">${t("section.cartEmpty")}</p>`;
   } else {
     list.innerHTML = cart.map((item) => `
-      <article class="cart-item" data-cart-id="${encodeAttr(item.id)}">
+      <article class="cart-item" data-cart-id="${encodeAttr(item.cartId || item.id)}">
         <img src="${item.image}" alt="${encodeAttr(item.name)}" loading="lazy" decoding="async" />
         <div>
           <strong>${item.name}</strong>
           <span>${item.price}</span>
+          ${item.options?.length ? `<small>${item.options.map(optionLabel).join(", ")}</small>` : ""}
           <div class="quantity-control" aria-label="${t("section.quantity")}">
-            <button type="button" data-cart-dec="${encodeAttr(item.id)}">-</button>
+            <button type="button" data-cart-dec="${encodeAttr(item.cartId || item.id)}">-</button>
             <b>${item.quantity}</b>
-            <button type="button" data-cart-inc="${encodeAttr(item.id)}">+</button>
+            <button type="button" data-cart-inc="${encodeAttr(item.cartId || item.id)}">+</button>
           </div>
         </div>
-        <button class="cart-remove" type="button" data-cart-remove="${encodeAttr(item.id)}" aria-label="${t("section.close")}">×</button>
+        <button class="cart-remove" type="button" data-cart-remove="${encodeAttr(item.cartId || item.id)}" aria-label="${t("section.close")}">×</button>
       </article>
     `).join("");
   }
@@ -810,6 +918,7 @@ function renderCheckout() {
       <div>
         <strong>${item.name}</strong>
         <span>${item.quantity} x ${item.price}</span>
+        ${item.options?.length ? `<small>${item.options.map(optionLabel).join(", ")}</small>` : ""}
       </div>
       <b>${euro(item.priceValue * item.quantity)}</b>
     </article>
@@ -820,14 +929,23 @@ function euro(value) {
   return new Intl.NumberFormat(lang === "de" ? "de-DE" : "nl-NL", { style: "currency", currency: "EUR" }).format(value);
 }
 
-function changeQuantity(itemId, delta) {
-  cart = cart.map((item) => item.id === itemId ? { ...item, quantity: item.quantity + delta } : item)
+function optionLabel(option) {
+  const labels = {
+    garlic: t("section.extraGarlic"),
+    spicy: t("section.extraSpicy"),
+    cheese: t("section.extraCheese")
+  };
+  return labels[option] || option;
+}
+
+function changeQuantity(cartId, delta) {
+  cart = cart.map((item) => (item.cartId || item.id) === cartId ? { ...item, quantity: item.quantity + delta } : item)
     .filter((item) => item.quantity > 0);
   renderCart();
 }
 
-function removeFromCart(itemId) {
-  cart = cart.filter((item) => item.id !== itemId);
+function removeFromCart(cartId) {
+  cart = cart.filter((item) => (item.cartId || item.id) !== cartId);
   renderCart();
 }
 
@@ -1103,16 +1221,8 @@ function render() {
   renderDesign();
   applyLanguage();
   renderHero();
-  renderBanners();
-  renderFeatured();
-  renderServiceStrip();
   renderCategories();
   renderMenu();
-  renderOffers();
-  renderGallery();
-  renderHours();
-  renderReviews();
-  renderSocials();
   renderContact();
   renderCheckout();
   renderSuccess();
@@ -1244,6 +1354,13 @@ $("#cartOpen").addEventListener("click", openCart);
 $("#mobileCartBtn").addEventListener("click", openCart);
 $("#cartClose").addEventListener("click", closeCart);
 $("#cartBackdrop").addEventListener("click", closeCart);
+$("#productModalClose")?.addEventListener("click", closeProductModal);
+$("#productQtyDec")?.addEventListener("click", () => changeModalQuantity(-1));
+$("#productQtyInc")?.addEventListener("click", () => changeModalQuantity(1));
+$("#productAddBtn")?.addEventListener("click", addModalProductToCart);
+$("#productModal")?.addEventListener("click", (event) => {
+  if (event.target.id === "productModal") closeProductModal();
+});
 $("#goCheckoutBtn").addEventListener("click", () => {
   if (!cart.length) {
     setStatus(t("section.cartEmpty"), true);
@@ -1291,14 +1408,8 @@ window.addEventListener("message", (event) => {
   renderDesign();
   applyLanguage();
   renderHero();
-  renderBanners();
   renderCategories();
   renderMenu();
-  renderOffers();
-  renderGallery();
-  renderHours();
-  renderReviews();
-  renderSocials();
   renderContact();
 });
 setupReveal();

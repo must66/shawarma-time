@@ -26,7 +26,7 @@
         }
       }());
     </script>
-    <link rel="stylesheet" href="src/styles.css?v=20260616-platform-stable" />
+    <link rel="stylesheet" href="src/styles.css?v=20260617-ordering-simplified" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -60,12 +60,8 @@
       <nav class="main-nav" aria-label="Main navigation">
         <a href="./" data-route="/" data-i18n="nav.home">Home</a>
         <a href="./menu" data-route="/menu" data-i18n="nav.menu">Menu</a>
-        <a href="./offers" data-route="/offers" data-i18n="nav.offers">Offers</a>
-        <a href="./gallery" data-route="/gallery" data-i18n="nav.gallery">Gallery</a>
         <a href="./checkout" data-route="/checkout" data-i18n="section.checkout">Checkout</a>
         <a href="./track" data-route="/track" data-i18n="section.trackOrder">Track</a>
-        <a href="./about" data-route="/about" data-i18n="nav.about">Over ons</a>
-        <a href="./hours" data-route="/hours" data-i18n="nav.hours">Openingstijden</a>
         <a href="./contact" data-route="/contact" data-i18n="nav.contact">Contact</a>
       </nav>
       <div class="language-switcher" aria-label="Language switcher">
@@ -84,42 +80,37 @@
     <main>
       <div class="site-status" id="siteStatus" role="status" aria-live="polite"></div>
 
-      <section id="home" class="hero reveal">
+      <section id="home" class="ordering-home reveal">
         <div class="hero-bg" id="heroBg"></div>
         <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <div class="hero-logo" aria-hidden="true">
-            <span class="brand-mark large" id="heroLogoMark">ST</span>
-            <span>Shawarma Time</span>
+        <div class="ordering-shell">
+          <div class="restaurant-summary">
+            <div class="hero-logo" aria-hidden="true">
+              <span class="brand-mark large" id="heroLogoMark">ST</span>
+              <span>Shawarma Time Venlo</span>
+            </div>
+            <p class="eyebrow" id="heroEyebrow"></p>
+            <h1 id="heroTitle"></h1>
+            <p class="hero-slogan" id="heroSlogan"></p>
+            <p class="hero-intro" id="heroIntro"></p>
+            <div class="ordering-meta" id="orderingMeta"></div>
+            <div class="hero-actions">
+              <a class="btn primary" href="#categoryTabs" data-i18n="section.orderNow">Order now</a>
+              <a class="btn glow" id="heroWhatsapp" target="_blank" rel="noopener">WhatsApp</a>
+            </div>
           </div>
-          <p class="eyebrow" id="heroEyebrow"></p>
-          <h1 id="heroTitle"></h1>
-          <p class="hero-slogan" id="heroSlogan"></p>
-          <p class="hero-intro" id="heroIntro"></p>
-          <div class="hero-actions">
-            <a class="btn primary" href="./menu" data-route="/menu" data-i18n="section.viewMenu">View Menu</a>
-            <a class="btn glow" id="heroWhatsapp" target="_blank" rel="noopener">WhatsApp</a>
+          <div class="ordering-panel">
+            <div class="section-head menu-head">
+              <div>
+                <p class="eyebrow" data-section-text="menuEyebrow">Online menu</p>
+                <h2 data-section-text="menuTitle">Choose your food</h2>
+              </div>
+            </div>
+            <div class="category-tabs" id="categoryTabs" aria-label="Food categories"></div>
+            <div class="menu-grid" id="menuGrid"></div>
           </div>
-        </div>
-        <div class="hero-stats">
-          <span>Syrian Style</span>
-          <span>Lebanese Grill</span>
-          <span>Venlo</span>
         </div>
       </section>
-
-      <section id="featured" class="section featured-section reveal">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow" data-section-text="featuredEyebrow">Populair in Venlo</p>
-            <h2 data-section-text="featuredTitle">Featured dishes</h2>
-          </div>
-          <a class="btn ghost" href="./menu" data-route="/menu" data-i18n="section.viewMenu">View Menu</a>
-        </div>
-        <div class="featured-grid" id="featuredGrid"></div>
-      </section>
-
-      <section class="service-strip reveal" id="serviceStrip" aria-label="Restaurant service information"></section>
 
       <section id="checkout" class="section checkout-section reveal">
         <div class="checkout-layout">
@@ -231,77 +222,6 @@
         </div>
       </section>
 
-      <section class="banner-strip reveal" id="banners" aria-label="Banner advertisements"></section>
-
-      <section id="menu" class="section reveal">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow" data-section-text="menuEyebrow">QR-ready menu</p>
-            <h2 data-section-text="menuTitle">Premium food showcase</h2>
-          </div>
-          <div class="qr-chip">QR MENU</div>
-        </div>
-        <div class="category-tabs" id="categoryTabs" aria-label="Food categories"></div>
-        <div class="menu-grid" id="menuGrid"></div>
-      </section>
-
-      <section id="offers" class="section offers-band reveal">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow" data-section-text="offersEyebrow">Dagelijks vers voordeel</p>
-            <h2 data-section-text="offersTitle">Offers, deals en banners</h2>
-          </div>
-          <a class="btn ghost" href="./contact" data-route="/contact" data-i18n="section.whatsapp">WhatsApp</a>
-        </div>
-        <div class="offer-grid" id="offerGrid"></div>
-      </section>
-
-      <section id="gallery" class="section reveal">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow" data-section-text="galleryEyebrow">Instagram stijl</p>
-            <h2 data-section-text="galleryTitle">Gallery</h2>
-          </div>
-        </div>
-        <div class="gallery-grid" id="galleryGrid"></div>
-      </section>
-
-      <section id="about" class="section about-section reveal">
-        <div>
-          <p class="eyebrow" data-section-text="aboutEyebrow">Authentiek in Venlo</p>
-          <h2 data-section-text="aboutTitle">Arabic shawarma, grill fire en gastvrijheid</h2>
-        </div>
-        <p id="aboutText"></p>
-      </section>
-
-      <section id="hours" class="section hours-section reveal">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow" data-section-text="hoursEyebrow">Plan je bezoek</p>
-            <h2 data-section-text="hoursTitle">Openingstijden</h2>
-          </div>
-        </div>
-        <div class="hours-card" id="hoursList"></div>
-      </section>
-
-      <section id="reviews" class="section reveal">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow" data-section-text="reviewsEyebrow">Wat gasten zeggen</p>
-            <h2 data-section-text="reviewsTitle">Reviews</h2>
-          </div>
-        </div>
-        <div class="review-grid" id="reviewGrid"></div>
-      </section>
-
-      <section id="socials" class="section social-section reveal">
-        <div>
-          <p class="eyebrow" data-section-text="socialsEyebrow">Volg de smaak</p>
-          <h2 data-section-text="socialsTitle">Social media</h2>
-        </div>
-        <div class="social-grid" id="socialGrid"></div>
-      </section>
-
       <section id="contact" class="section contact-section reveal">
         <div class="contact-panel">
           <p class="eyebrow" data-section-text="contactEyebrow">Route en contact</p>
@@ -327,6 +247,32 @@
       <button class="lightbox-close" type="button" data-i18n-aria="section.close">×</button>
       <img id="lightboxImage" alt="" />
       <p id="lightboxCaption"></p>
+    </dialog>
+
+    <dialog class="product-modal" id="productModal">
+      <button class="lightbox-close" id="productModalClose" type="button" data-i18n-aria="section.close">x</button>
+      <img id="productModalImage" alt="" />
+      <div class="product-modal-body">
+        <span id="productModalCategory"></span>
+        <h2 id="productModalName"></h2>
+        <p id="productModalDesc"></p>
+        <strong id="productModalPrice"></strong>
+        <fieldset class="product-options">
+          <legend data-i18n="section.addOns">Add-ons</legend>
+          <label><input type="checkbox" value="garlic" /> <span data-i18n="section.extraGarlic">Extra garlic sauce</span></label>
+          <label><input type="checkbox" value="spicy" /> <span data-i18n="section.extraSpicy">Extra spicy sauce</span></label>
+          <label><input type="checkbox" value="cheese" /> <span data-i18n="section.extraCheese">Extra cheese</span></label>
+        </fieldset>
+        <div class="modal-quantity">
+          <span data-i18n="section.quantity">Quantity</span>
+          <div class="quantity-control">
+            <button type="button" id="productQtyDec">-</button>
+            <b id="productQty">1</b>
+            <button type="button" id="productQtyInc">+</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn primary product-add-sticky" id="productAddBtn" type="button" data-i18n="section.addToBasket">Add to basket</button>
     </dialog>
 
     <div class="cart-backdrop" id="cartBackdrop"></div>
@@ -358,6 +304,6 @@
       <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260616-platform-stable"></script>
+    <script type="module" src="src/app.js?v=20260617-ordering-simplified"></script>
   </body>
 </html>

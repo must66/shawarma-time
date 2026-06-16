@@ -51,6 +51,7 @@ const adminText = {
     navHours: "Openingstijden",
     navSettings: "Instellingen",
     navNotifications: "Meldingen",
+    navCategories: "Categorieen",
     protectedDashboard: "Beveiligd dashboard",
     viewWebsite: "Website bekijken",
     dashboardTitle: "Dashboard",
@@ -86,6 +87,7 @@ const adminText = {
     hoursTitle: "Openingstijden",
     settingsTitle: "Instellingen",
     notificationsTitle: "Meldingen",
+    categoriesTitle: "Categorieen",
     notificationsNote: "Opslaan, verwijderen en uploaden tonen meldingen rechtsboven.",
     saveHome: "Home opslaan",
     saveContact: "Contact opslaan",
@@ -96,6 +98,8 @@ const adminText = {
     addBanner: "Banner toevoegen",
     addPhoto: "Foto toevoegen",
     addReview: "Review toevoegen",
+    addCategory: "Categorie toevoegen",
+    categorySlug: "Categorie code",
     role: "Rol",
     title: "Titel",
     slogan: "Slogan",
@@ -109,6 +113,7 @@ const adminText = {
     tiktokUrl: "TikTok URL",
     facebookUrl: "Facebook URL",
     category: "Categorie",
+    available: "Beschikbaar",
     badge: "Badge",
     none: "Geen",
     type: "Type",
@@ -154,6 +159,7 @@ const adminText = {
     navHours: "ساعات العمل",
     navSettings: "الإعدادات",
     navNotifications: "الإشعارات",
+    navCategories: "التصنيفات",
     protectedDashboard: "لوحة إدارة محمية",
     viewWebsite: "عرض الموقع",
     dashboardTitle: "لوحة التحكم",
@@ -189,6 +195,7 @@ const adminText = {
     hoursTitle: "ساعات العمل",
     settingsTitle: "الإعدادات",
     notificationsTitle: "الإشعارات",
+    categoriesTitle: "التصنيفات",
     notificationsNote: "عمليات الحفظ والحذف ورفع الصور تعرض إشعارات في أعلى الصفحة.",
     saveHome: "حفظ الرئيسية",
     saveContact: "حفظ التواصل",
@@ -199,6 +206,8 @@ const adminText = {
     addBanner: "إضافة بنر",
     addPhoto: "إضافة صورة",
     addReview: "إضافة تقييم",
+    addCategory: "إضافة تصنيف",
+    categorySlug: "رمز التصنيف",
     role: "الدور",
     title: "العنوان",
     slogan: "الشعار",
@@ -212,6 +221,7 @@ const adminText = {
     tiktokUrl: "رابط تيك توك",
     facebookUrl: "رابط فيسبوك",
     category: "التصنيف",
+    available: "متاح",
     badge: "الشارة",
     none: "بدون",
     type: "النوع",
@@ -257,6 +267,7 @@ const adminText = {
     navHours: "Öffnungszeiten",
     navSettings: "Einstellungen",
     navNotifications: "Benachrichtigungen",
+    navCategories: "Kategorien",
     protectedDashboard: "Geschütztes Dashboard",
     viewWebsite: "Website ansehen",
     dashboardTitle: "Dashboard",
@@ -292,6 +303,7 @@ const adminText = {
     hoursTitle: "Öffnungszeiten",
     settingsTitle: "Einstellungen",
     notificationsTitle: "Benachrichtigungen",
+    categoriesTitle: "Kategorien",
     notificationsNote: "Speichern, Löschen und Uploads zeigen Benachrichtigungen oben rechts.",
     saveHome: "Startseite speichern",
     saveContact: "Kontakt speichern",
@@ -302,6 +314,8 @@ const adminText = {
     addBanner: "Banner hinzufügen",
     addPhoto: "Foto hinzufügen",
     addReview: "Bewertung hinzufügen",
+    addCategory: "Kategorie hinzufügen",
+    categorySlug: "Kategorie-Code",
     role: "Rolle",
     title: "Titel",
     slogan: "Slogan",
@@ -315,6 +329,7 @@ const adminText = {
     tiktokUrl: "TikTok-URL",
     facebookUrl: "Facebook-URL",
     category: "Kategorie",
+    available: "Verfuegbar",
     badge: "Badge",
     none: "Keine",
     type: "Typ",
@@ -543,14 +558,17 @@ $("#saveHoursBtn").addEventListener("click", () => {
   saveContent(tr("hoursSaved"));
 });
 
+$("#addCategoryBtn")?.addEventListener("click", () => {
+  siteData.categoryOrder ||= [...categoryOrder];
+  siteData.categoryOrder.push(`category-${Date.now()}`);
+  renderCategoriesAdmin();
+});
+
 function renderAll() {
   renderHome();
   renderOrders();
-  renderCollection("menu", "menuEditor", { category: true, badge: true, price: true, desc: true, folder: "menu" });
-  renderCollection("offers", "offersEditor", { type: true, price: true, desc: true, folder: "offers" });
-  renderCollection("banners", "bannersEditor", { title: true, text: true, folder: "banners" });
-  renderCollection("gallery", "galleryEditor", { title: true, type: true, folder: "gallery" });
-  renderReviews();
+  renderCollection("menu", "menuEditor", { category: true, badge: true, price: true, desc: true, availability: true, folder: "menu" });
+  renderCategoriesAdmin();
   renderContact();
   renderHours();
   setupUploads();
@@ -826,6 +844,59 @@ function renderHours() {
   `;
 }
 
+function renderCategoriesAdmin() {
+  const root = $("#categoriesEditor");
+  if (!root) return;
+  siteData.categoryOrder ||= [...categoryOrder];
+  siteData.categoryLabels ||= {};
+  root.innerHTML = siteData.categoryOrder.map((slug, index) => `
+    <article class="admin-card editor-card category-editor" data-index="${index}">
+      <div class="editor-fields">
+        <label><span>${tr("categorySlug")}</span><input data-category-slug value="${escapeAttr(slug)}" /></label>
+        <label><span>${tr("name")} NL</span><input data-category-name="nl" value="${escapeAttr(siteData.categoryLabels[slug]?.nl || ui.nl.categories[slug] || slug)}" /></label>
+        <label><span>${tr("name")} AR</span><input data-category-name="ar" value="${escapeAttr(siteData.categoryLabels[slug]?.ar || ui.ar.categories[slug] || slug)}" /></label>
+        <label><span>${tr("name")} DE</span><input data-category-name="de" value="${escapeAttr(siteData.categoryLabels[slug]?.de || ui.de.categories[slug] || slug)}" /></label>
+      </div>
+      <div class="editor-actions">
+        <button class="btn primary" type="button" data-save-category>${tr("save")}</button>
+        <button class="btn ghost danger" type="button" data-delete-category>${tr("delete")}</button>
+      </div>
+    </article>
+  `).join("");
+  root.querySelectorAll("[data-save-category]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const card = button.closest(".category-editor");
+      const index = Number(card.dataset.index);
+      const slug = normalizeCategorySlug(card.querySelector("[data-category-slug]").value);
+      if (!slug) return;
+      const oldSlug = siteData.categoryOrder[index];
+      siteData.categoryOrder[index] = slug;
+      if (oldSlug && oldSlug !== slug) delete siteData.categoryLabels[oldSlug];
+      siteData.categoryLabels[slug] = {
+        nl: card.querySelector('[data-category-name="nl"]').value || slug,
+        ar: card.querySelector('[data-category-name="ar"]').value || slug,
+        de: card.querySelector('[data-category-name="de"]').value || slug
+      };
+      await saveContent(tr("saved"));
+    });
+  });
+  root.querySelectorAll("[data-delete-category]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const index = Number(button.closest(".category-editor").dataset.index);
+      siteData.categoryOrder.splice(index, 1);
+      await saveContent(tr("deleted"));
+    });
+  });
+}
+
+function normalizeCategorySlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function renderReviews() {
   const root = $("#reviewsEditor");
   root.innerHTML = (siteData.reviews || []).map((review) => `
@@ -887,6 +958,7 @@ function editorCard(collection, item, options) {
       <div class="editor-fields">
         ${options.category ? categorySelect(item) : ""}
         ${options.badge ? badgeSelect(item) : ""}
+        ${options.availability ? checkboxField("available", tr("available"), item.available !== false) : ""}
         ${options.type ? field("type", tr("type"), item.type || "") : ""}
         ${options.price ? field("price", tr("price"), item.price || "") : ""}
         ${multiInput(item, options.title ? "title" : "name", options.title ? tr("title") : tr("name"))}
@@ -910,7 +982,7 @@ function saveEditor(collection, card) {
 
 function collectFields(root, item) {
   root.querySelectorAll("[data-field]").forEach((input) => {
-    setNested(item, input.dataset.field, input.value);
+    setNested(item, input.dataset.field, input.type === "checkbox" ? input.checked : input.value);
   });
 }
 
@@ -927,12 +999,23 @@ function field(fieldName, label, value, className = "") {
   return `<label class="${className}"><span>${label}</span><input data-field="${fieldName}" value="${escapeAttr(value)}" /></label>`;
 }
 
+function checkboxField(fieldName, label, checked) {
+  return `<label class="toggle-label"><span>${label}</span><input type="checkbox" data-field="${fieldName}" ${checked ? "checked" : ""} /></label>`;
+}
+
 function uploadLabel(label, attribute) {
   return `<label class="wide upload-label"><span>${label}</span><small>${tr("uploadHint")}</small><input ${attribute} type="file" accept="${imageAccept}" /></label>`;
 }
 
 function categorySelect(item) {
-  return `<label><span>${tr("category")}</span><select data-field="category">${categoryOrder.map((cat) => `<option value="${cat}" ${item.category === cat ? "selected" : ""}>${ui[adminLang].categories[cat]}</option>`).join("")}</select></label>`;
+  const categories = siteData.categoryOrder?.length ? siteData.categoryOrder : categoryOrder;
+  return `<label><span>${tr("category")}</span><select data-field="category">${categories.map((cat) => `<option value="${cat}" ${item.category === cat ? "selected" : ""}>${categoryLabelAdmin(cat)}</option>`).join("")}</select></label>`;
+}
+
+function categoryLabelAdmin(category) {
+  return siteData.categoryLabels?.[category]?.[adminLang]
+    || ui[adminLang].categories[category]
+    || category;
 }
 
 function badgeSelect(item) {
@@ -991,7 +1074,7 @@ function blankItem(collection) {
   const baseImage = siteData.homepage.heroImage;
   const blank = { nl: "", ar: "", de: "", en: "" };
   return {
-    menu: { id, category: "shawarma", badge: "", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },
+    menu: { id, category: "shawarma", badge: "", price: "EUR 0,00", available: true, name: { ...blank }, desc: { ...blank }, image: baseImage },
     offers: { id, type: "daily", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },
     banners: { id, title: { ...blank }, text: { ...blank }, image: baseImage },
     gallery: { id, type: "food", title: { ...blank }, image: baseImage },
