@@ -24,7 +24,10 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-block: 96px 112px;
+}
 body {
   margin: 0;
   background:
@@ -585,6 +588,7 @@ h1 {
 .food-card {
   display: grid;
   grid-template-rows: auto 1fr;
+  scroll-margin-block: 96px 112px;
 }
 body[data-card-style="flat"] .food-card,
 body[data-card-style="flat"] .offer-card,
@@ -1810,6 +1814,10 @@ body.no-animations .btn {
 }
 
 @media (max-width: 720px) {
+  html {
+    scroll-behavior: auto;
+    scroll-padding-block: 92px 120px;
+  }
   body:not(.admin-body) { padding-bottom: 86px; }
   .site-header { gap: 10px; padding: 12px 14px; }
   .brand-mark { width: 42px; height: 42px; }
