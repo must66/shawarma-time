@@ -41,9 +41,11 @@ export async function getFirebase() {
         import(/* @vite-ignore */ FIRESTORE_URL)
       ]);
       const app = initializeApp(firebaseConfig);
+      const auth = authMod.getAuth(app);
+      await authMod.setPersistence(auth, authMod.browserLocalPersistence);
       return {
         app,
-        auth: authMod.getAuth(app),
+        auth,
         db: firestoreMod.getFirestore(app),
         authMod,
         firestoreMod

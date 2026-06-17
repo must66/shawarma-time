@@ -3,12 +3,13 @@ import {
   isFirebaseConfigured,
   loadFirebaseSiteData,
   saveFirebaseSiteData,
+  getAdminSession,
   signOutAdmin,
   signInAdmin,
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260617-admin-realtime-orders";
+} from "./firebaseService.js?v=20260617-admin-local-auth";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -443,6 +444,12 @@ function loading(active) {
   $("#adminLoader").classList.toggle("hidden", !active);
 }
 
+function showRestoringSession() {
+  $("#loginView").classList.add("hidden");
+  $("#dashboardView").classList.add("hidden");
+  $("#loginNote").textContent = "";
+}
+
 function showLogin(message = "") {
   $("#loginView").classList.remove("hidden");
   $("#dashboardView").classList.add("hidden");
@@ -566,6 +573,23 @@ $("#addCategoryBtn")?.addEventListener("click", () => {
   siteData.categoryOrder.push(`category-${Date.now()}`);
   renderCategoriesAdmin();
 });
+
+async function bootAdmin() {
+  showRestoringSession();
+  loading(true);
+  try {
+    const session = await getAdminSession();
+    if (session?.user) {
+      await showDashboard(session);
+      return;
+    }
+    showLogin("");
+  } catch (error) {
+    showLogin(localizedError(error, "loginFailed"));
+  } finally {
+    loading(false);
+  }
+}
 
 function renderAll() {
   renderHome();
@@ -1184,4 +1208,4 @@ function escapeAttr(value) {
 }
 
 applyAdminLanguage();
-showLogin("");
+bootAdmin();
