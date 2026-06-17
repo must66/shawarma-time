@@ -641,6 +641,8 @@ body.no-glow .loader span {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  position: relative;
+  z-index: 2;
 }
 .food-card div.food-card-bottom { padding: 0; }
 .btn.tiny {
@@ -653,6 +655,9 @@ body.no-glow .loader span {
 }
 .add-button {
   min-width: 118px;
+  position: relative;
+  z-index: 3;
+  touch-action: manipulation;
 }
 .badge {
   position: absolute;
@@ -1539,6 +1544,7 @@ body.no-glow .loader span {
 .ordering-panel .food-image {
   grid-column: 2;
   grid-row: 1;
+  pointer-events: none;
 }
 
 .ordering-panel .food-card img {
@@ -1551,7 +1557,10 @@ body.no-glow .loader span {
   grid-row: 1;
   display: grid;
   align-content: start;
+  min-width: 0;
   padding: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .ordering-panel .food-card h3 {
@@ -1563,8 +1572,15 @@ body.no-glow .loader span {
   color: var(--soft);
 }
 
+.ordering-panel .food-card p,
+.ordering-panel .food-card h3,
+.ordering-panel .food-card span {
+  pointer-events: none;
+}
+
 .ordering-panel .food-card-bottom {
   margin-top: auto;
+  pointer-events: auto;
 }
 
 .ordering-panel .add-button {
