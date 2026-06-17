@@ -1303,20 +1303,69 @@ body.no-glow .loader span {
 }
 .track-steps {
   display: grid;
+  gap: 20px;
+}
+.track-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.track-summary p {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-height: 96px;
+  border: 1px solid rgba(255,191,88,.14);
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255,255,255,.05);
+}
+.track-summary span {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 950;
+}
+.track-summary strong {
+  color: var(--gold);
+  font-size: clamp(1rem, 3vw, 1.35rem);
+}
+.track-timeline {
+  display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
+  align-items: start;
 }
 .track-step {
+  position: relative;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   justify-items: center;
   text-align: center;
   color: var(--muted);
   font-weight: 900;
 }
+.track-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 17px;
+  inset-inline-start: calc(50% + 24px);
+  width: calc(100% - 48px);
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255,191,88,.18);
+}
+[dir="rtl"] .track-step:not(:last-child)::after {
+  inset-inline-start: auto;
+  inset-inline-end: calc(50% + 24px);
+}
+.track-step.active:not(:last-child)::after {
+  background: linear-gradient(90deg, var(--orange), var(--gold));
+}
 .track-step span {
-  width: 34px;
-  height: 34px;
+  position: relative;
+  z-index: 1;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   border: 2px solid rgba(255,191,88,.25);
   background: rgba(255,255,255,.05);
@@ -1776,6 +1825,36 @@ body.no-animations .btn {
   .food-card-bottom { align-items: stretch; }
   .food-card-bottom .btn { flex: 0 0 auto; }
   .form-row, .success-details, .fulfillment-methods, .track-form, .track-steps { grid-template-columns: 1fr; }
+  .track-summary {
+    grid-template-columns: 1fr;
+  }
+  .track-timeline {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .track-step {
+    grid-template-columns: 42px 1fr;
+    justify-items: start;
+    text-align: start;
+    min-height: 62px;
+  }
+  .track-step:not(:last-child)::after {
+    top: 38px;
+    inset-inline-start: 19px;
+    width: 3px;
+    height: calc(100% - 38px);
+  }
+  [dir="rtl"] .track-step:not(:last-child)::after {
+    inset-inline-start: auto;
+    inset-inline-end: 19px;
+  }
+  .track-step span {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .track-step b {
+    align-self: center;
+  }
   .checkout-main, .order-success-card { padding: 22px; }
   .checkout-item { grid-template-columns: 66px 1fr; }
   .checkout-item b { grid-column: 2; }

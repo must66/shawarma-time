@@ -640,11 +640,15 @@ function renderOrders() {
           ${statusOption("accepted", order.orderStatus || order.status)}
           ${statusOption("preparing", order.orderStatus || order.status)}
           ${statusOption("ready", order.orderStatus || order.status)}
+          ${statusOption("out_for_delivery", order.orderStatus || order.status)}
           ${statusOption("delivered", order.orderStatus || order.status)}
           ${statusOption("completed", order.orderStatus || order.status)}
           ${statusOption("cancelled", order.orderStatus || order.status)}
         </select>
       </label>
+      <div class="order-quick-actions">
+        ${adminStatusFlow(order).map((status) => `<button class="status-chip ${escapeAttr(status)}" type="button" data-quick-status="${order.id}:${status}">${statusLabel(status)}</button>`).join("")}
+      </div>
       <button class="btn ghost" type="button" data-print-order="${order.id}">Print kitchen ticket</button>
     </article>
   `).join("");
@@ -667,7 +671,28 @@ function renderOrders() {
       if (order) printKitchenTicket(order);
     });
   });
+  root.querySelectorAll("[data-quick-status]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const [orderId, status] = button.dataset.quickStatus.split(":");
+      loading(true);
+      try {
+        await updateFirebaseOrderStatus(orderId, status);
+        note(tr("saved"));
+      } catch (error) {
+        note(localizedError(error, "saveFailed"));
+      } finally {
+        loading(false);
+      }
+    });
+  });
   updateOrdersBadge();
+}
+
+function adminStatusFlow(order) {
+  const fulfillment = order.customer?.fulfillment || "pickup";
+  return fulfillment === "delivery"
+    ? ["accepted", "preparing", "out_for_delivery", "delivered"]
+    : ["accepted", "preparing", "ready", "delivered"];
 }
 
 function filteredOrders() {
@@ -737,6 +762,9 @@ function statusOption(value, selected) {
 }
 
 function statusLabel(status) {
+  if (status === "out_for_delivery") {
+    return adminLang === "ar" ? "في الطريق" : adminLang === "de" ? "Unterwegs" : "Onderweg";
+  }
   if (status === "accepted") {
     return adminLang === "ar" ? "تم قبول الطلب" : adminLang === "de" ? "Angenommen" : "Geaccepteerd";
   }

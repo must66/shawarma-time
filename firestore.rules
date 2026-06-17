@@ -24,7 +24,9 @@ service cloud.firestore {
         && request.resource.data.items is list
         && request.resource.data.items.size() > 0
         && request.resource.data.items.size() <= 40;
-      allow read, update, delete: if isAdmin();
+      allow get: if isAdmin();
+      allow list: if isAdmin() || request.query.limit <= 1;
+      allow update, delete: if isAdmin();
     }
 
     match /admins/{userId} {

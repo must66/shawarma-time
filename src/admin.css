@@ -697,6 +697,11 @@ html[dir="rtl"] .admin-sidebar nav button {
   color: #9ef8ff;
 }
 
+.order-status.out_for_delivery {
+  background: rgba(255, 122, 26, .18);
+  color: #ffd39a;
+}
+
 .order-status.delivered {
   background: rgba(37, 211, 102, .18);
   color: #8dffb9;
@@ -750,6 +755,40 @@ html[dir="rtl"] .admin-sidebar nav button {
 
 .order-status-field {
   max-width: 320px;
+}
+
+.order-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-chip {
+  min-height: 38px;
+  border: 1px solid rgba(255, 191, 88, .16);
+  border-radius: 999px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, .055);
+  color: var(--text);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.status-chip.accepted {
+  color: #ffd39a;
+}
+
+.status-chip.preparing {
+  color: #ffe2a8;
+}
+
+.status-chip.ready,
+.status-chip.out_for_delivery {
+  color: #9ef8ff;
+}
+
+.status-chip.delivered {
+  color: #8dffb9;
 }
 
 .media-card {

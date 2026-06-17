@@ -187,6 +187,32 @@ export async function findFirebaseOrderByNumber(orderNumber) {
   return { id: doc.id, ...doc.data() };
 }
 
+export async function subscribeFirebaseOrderByNumber(orderNumber, callback, onError) {
+  const firebase = await getFirebase();
+  if (!firebase) return () => {};
+  const normalized = String(orderNumber || "").trim().toUpperCase();
+  if (!normalized) return () => {};
+  const queryRef = firebase.firestoreMod.query(
+    firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION),
+    firebase.firestoreMod.where("orderNumber", "==", normalized),
+    firebase.firestoreMod.limit(1)
+  );
+  return firebase.firestoreMod.onSnapshot(
+    queryRef,
+    (snapshot) => {
+      if (snapshot.empty) {
+        callback(null);
+        return;
+      }
+      const doc = snapshot.docs[0];
+      callback({ id: doc.id, ...doc.data() });
+    },
+    (error) => {
+      if (onError) onError(error);
+    }
+  );
+}
+
 export async function subscribeFirebaseOrders(callback, onError) {
   const firebase = await getFirebase();
   if (!firebase) return () => {};
@@ -211,7 +237,7 @@ export async function updateFirebaseOrderStatus(orderId, status) {
   if (!firebase) {
     throw new Error(CONFIG_ERROR);
   }
-  if (!["new", "accepted", "preparing", "ready", "delivered", "completed", "cancelled"].includes(status)) {
+  if (!["new", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "completed", "cancelled"].includes(status)) {
     throw new Error("Invalid order status.");
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {

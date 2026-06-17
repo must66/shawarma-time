@@ -1,12 +1,13 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseOrder, findFirebaseOrderByNumber } from "./firebaseService.js?v=20260616-platform-stable";
+import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-tracking";
 import { paymentConfig } from "./paymentConfig.js";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
 let data = loadSiteData();
 let unsubscribeRealtime = null;
+let unsubscribeTrackedOrder = null;
 let cart = [];
 let modalProductId = null;
 let modalQuantity = 1;
@@ -89,8 +90,12 @@ const orderingUi = {
       accepted: "Geaccepteerd",
       preparing: "In bereiding",
       readyForPickup: "Klaar voor afhalen",
+      outForDelivery: "Onderweg",
       delivered: "Afgeleverd",
       cancelled: "Geannuleerd",
+      estimatedPrep: "Geschatte bereiding",
+      remainingTime: "Nog ongeveer",
+      liveTracking: "Live status",
       trackingHint: "Vul je ordernummer in of plaats een bestelling om de status te zien.",
       trackingNotFound: "We konden dit ordernummer niet vinden. Controleer het nummer of bel het restaurant.",
       directions: "Route",
@@ -156,8 +161,12 @@ const orderingUi = {
       accepted: "تم قبول الطلب",
       preparing: "قيد التحضير",
       readyForPickup: "جاهز للاستلام",
+      outForDelivery: "في الطريق",
       delivered: "تم التسليم",
       cancelled: "ملغي",
+      estimatedPrep: "وقت التحضير المتوقع",
+      remainingTime: "المتبقي تقريباً",
+      liveTracking: "تتبع مباشر",
       trackingHint: "أدخل رقم الطلب أو قم بإنشاء طلب لمتابعة الحالة.",
       trackingNotFound: "لم نتمكن من العثور على رقم الطلب. تحقق من الرقم أو اتصل بالمطعم.",
       directions: "الاتجاهات",
@@ -223,8 +232,12 @@ const orderingUi = {
       accepted: "Angenommen",
       preparing: "In Vorbereitung",
       readyForPickup: "Bereit zur Abholung",
+      outForDelivery: "Unterwegs",
       delivered: "Geliefert",
       cancelled: "Storniert",
+      estimatedPrep: "Geschaetzte Zeit",
+      remainingTime: "Noch etwa",
+      liveTracking: "Live-Status",
       trackingHint: "Gib deine Bestellnummer ein oder erstelle eine Bestellung, um den Status zu sehen.",
       trackingNotFound: "Diese Bestellnummer wurde nicht gefunden. Bitte pruefe die Nummer oder rufe das Restaurant an.",
       directions: "Route",
@@ -340,8 +353,12 @@ const orderingUi = {
       accepted: "Accepted",
       preparing: "Preparing",
       readyForPickup: "Ready for Pickup",
+      outForDelivery: "Out for Delivery",
       delivered: "Delivered",
       cancelled: "Cancelled",
+      estimatedPrep: "Estimated preparation",
+      remainingTime: "About remaining",
+      liveTracking: "Live status",
       trackingHint: "Enter your order number or place an order to see the status.",
       trackingNotFound: "We could not find this order number. Please check it or call the restaurant.",
       directions: "Directions",
@@ -1057,26 +1074,65 @@ function fulfillmentText(value) {
 function renderTracking(order = getLastOrder()) {
   const root = $("#trackSteps");
   if (!root) return;
-  const current = order?.status || "new";
-  const statuses = ["new", "accepted", "preparing", "ready", "delivered", "cancelled"];
+  const current = order?.orderStatus || order?.status || "new";
+  const fulfillment = order?.customer?.fulfillment || "pickup";
+  const statuses = trackingStatuses(fulfillment, current);
   const index = statuses.indexOf(current);
   const labels = {
     new: t("section.orderReceived"),
     accepted: t("section.accepted"),
     preparing: t("section.preparing"),
     ready: t("section.readyForPickup"),
+    out_for_delivery: t("section.outForDelivery"),
     delivered: t("section.delivered"),
     cancelled: t("section.cancelled")
   };
-  root.innerHTML = statuses.map((status, statusIndex) => `
-    <div class="track-step ${statusIndex <= Math.max(index, 0) ? "active" : ""} ${status === current ? "current" : ""}">
-      <span></span>
-      <b>${labels[status]}</b>
+  root.innerHTML = `
+    <div class="track-summary">
+      <p><span>${t("section.orderNumber")}</span><strong>${escapeHtml(order?.orderNumber || "-")}</strong></p>
+      <p><span>${t("section.liveTracking")}</span><strong>${labels[current] || labels.new}</strong></p>
+      <p><span>${t("section.estimatedPrep")}</span><strong>${estimatedPrepTime(order)}</strong></p>
+      <p><span>${t("section.remainingTime")}</span><strong>${remainingTime(order, current)}</strong></p>
     </div>
-  `).join("");
+    <div class="track-timeline">
+      ${statuses.map((status, statusIndex) => `
+        <div class="track-step ${statusIndex <= Math.max(index, 0) ? "active" : ""} ${status === current ? "current" : ""}">
+          <span></span>
+          <b>${labels[status]}</b>
+        </div>
+      `).join("")}
+    </div>
+  `;
   $("#trackNote").textContent = order?.orderNumber
-    ? `${t("section.orderNumber")}: ${order.orderNumber}`
+    ? `${t("section.pickupDelivery")}: ${fulfillmentText(fulfillment)}`
     : t("section.trackingHint");
+}
+
+function trackingStatuses(fulfillment, current) {
+  if (current === "cancelled") return ["new", "accepted", "preparing", "cancelled"];
+  return fulfillment === "delivery"
+    ? ["new", "accepted", "preparing", "out_for_delivery", "delivered"]
+    : ["new", "accepted", "preparing", "ready", "delivered"];
+}
+
+function estimatedPrepTime(order) {
+  return order?.prepTime || t("section.defaultPrepTime");
+}
+
+function remainingTime(order, current) {
+  if (!order?.orderNumber) return "-";
+  if (["ready", "out_for_delivery", "delivered", "cancelled"].includes(current)) return "0 min";
+  const created = orderTimestamp(order.createdAt);
+  const totalMinutes = order?.customer?.fulfillment === "delivery" ? 40 : 30;
+  const elapsed = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
+  return `${Math.max(0, totalMinutes - elapsed)} min`;
+}
+
+function orderTimestamp(value) {
+  if (value?.toDate) return value.toDate();
+  if (value?.seconds) return new Date(value.seconds * 1000);
+  const date = new Date(value || Date.now());
+  return Number.isNaN(date.getTime()) ? new Date() : date;
 }
 
 function getLastOrder() {
@@ -1085,6 +1141,36 @@ function getLastOrder() {
   } catch {
     return null;
   }
+}
+
+async function startOrderTracking(orderNumber) {
+  const requested = String(orderNumber || "").trim().toUpperCase();
+  if (!requested) {
+    renderTracking(null);
+    return;
+  }
+  if (unsubscribeTrackedOrder) unsubscribeTrackedOrder();
+  $("#trackNote").textContent = t("section.submitOrder");
+  unsubscribeTrackedOrder = await subscribeFirebaseOrderByNumber(requested, (order) => {
+    if (!order) {
+      renderTracking(null);
+      $("#trackNote").textContent = t("section.trackingNotFound");
+      return;
+    }
+    const trackedOrder = {
+      ...order,
+      status: order.orderStatus || order.status || "new",
+      orderNumber: order.orderNumber || requested
+    };
+    sessionStorage.setItem("shawarma-time-last-order", JSON.stringify({
+      ...trackedOrder,
+      createdAt: orderTimestamp(order.createdAt).toISOString()
+    }));
+    renderTracking(trackedOrder);
+  }, () => {
+    renderTracking(null);
+    $("#trackNote").textContent = t("section.trackingNotFound");
+  });
 }
 
 function formatOrderNumber(orderId) {
@@ -1377,24 +1463,8 @@ $("#trackForm").addEventListener("submit", (event) => {
   const requested = String(value || "").trim().toUpperCase();
   if (lastOrder?.orderNumber && requested === lastOrder.orderNumber.toUpperCase()) {
     renderTracking(lastOrder);
-    return;
   }
-  $("#trackNote").textContent = t("section.submitOrder");
-  findFirebaseOrderByNumber(requested).then((order) => {
-    if (order) {
-      renderTracking({
-        ...order,
-        status: order.orderStatus || order.status || "new",
-        orderNumber: order.orderNumber || requested
-      });
-      return;
-    }
-    renderTracking(null);
-    $("#trackNote").textContent = t("section.trackingNotFound");
-  }).catch(() => {
-    renderTracking(null);
-    $("#trackNote").textContent = t("section.trackingNotFound");
-  });
+  startOrderTracking(requested);
 });
 
 if (document.readyState === "complete") {
