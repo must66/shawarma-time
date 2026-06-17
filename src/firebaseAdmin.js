@@ -27,6 +27,7 @@ let orders = [];
 let unsubscribeOrders = null;
 let ordersError = "";
 let knownOrderIds = new Set();
+let ordersFeedInitialized = false;
 let orderSearch = "";
 let orderStatusFilter = "all";
 const readOrdersKey = "shawarma-time-read-orders";
@@ -578,18 +579,28 @@ function renderAll() {
 
 async function startOrdersFeed() {
   if (unsubscribeOrders || !isFirebaseConfigured()) return;
+  console.info("[OrderFlow] Admin connecting realtime orders listener", { collection: "orders" });
   unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders) => {
     ordersError = "";
     const incomingIds = new Set(incomingOrders.map((order) => order.id));
-    const freshOrders = incomingOrders.filter((order) => !knownOrderIds.has(order.id));
-    if (knownOrderIds.size && freshOrders.length) {
+    const freshOrders = ordersFeedInitialized
+      ? incomingOrders.filter((order) => !knownOrderIds.has(order.id))
+      : [];
+    if (freshOrders.length) {
+      console.info("[OrderFlow] New order received by admin", freshOrders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.orderStatus || order.status
+      })));
       playOrderSound();
       note(`${freshOrders.length} ${tr("ordersTitle")}`);
     }
     knownOrderIds = incomingIds;
+    ordersFeedInitialized = true;
     orders = incomingOrders;
     renderOrders();
   }, () => {
+    console.error("[OrderFlow] Admin orders listener unavailable");
     ordersError = "unavailable";
     renderOrders();
   });
@@ -617,7 +628,7 @@ function renderOrders() {
           <strong>#${escapeHtml(order.orderNumber || order.id.slice(0, 8).toUpperCase())}</strong>
           <span>${formatOrderDate(order.createdAt)}</span>
         </div>
-        <mark class="order-status ${escapeAttr(order.orderStatus || order.status || "new")}">${statusLabel(order.orderStatus || order.status || "new")}</mark>
+        <mark class="order-status ${escapeAttr(normalizeAdminStatus(order.orderStatus || order.status || "pending"))}">${statusLabel(order.orderStatus || order.status || "pending")}</mark>
       </div>
       <div class="order-meta">
         <p><span>${tr("orderCustomer")}</span><b>${escapeHtml(order.customer?.name || "")}</b></p>
@@ -636,13 +647,12 @@ function renderOrders() {
       <label class="order-status-field">
         <span>${tr("orderStatus")}</span>
         <select data-order-status="${order.id}">
-          ${statusOption("new", order.orderStatus || order.status)}
-          ${statusOption("accepted", order.orderStatus || order.status)}
+          ${statusOption("pending", order.orderStatus || order.status)}
+          ${statusOption("confirmed", order.orderStatus || order.status)}
           ${statusOption("preparing", order.orderStatus || order.status)}
           ${statusOption("ready", order.orderStatus || order.status)}
-          ${statusOption("out_for_delivery", order.orderStatus || order.status)}
+          ${statusOption("on_the_way", order.orderStatus || order.status)}
           ${statusOption("delivered", order.orderStatus || order.status)}
-          ${statusOption("completed", order.orderStatus || order.status)}
           ${statusOption("cancelled", order.orderStatus || order.status)}
         </select>
       </label>
@@ -691,14 +701,14 @@ function renderOrders() {
 function adminStatusFlow(order) {
   const fulfillment = order.customer?.fulfillment || "pickup";
   return fulfillment === "delivery"
-    ? ["accepted", "preparing", "out_for_delivery", "delivered"]
-    : ["accepted", "preparing", "ready", "delivered"];
+    ? ["confirmed", "preparing", "on_the_way", "delivered"]
+    : ["confirmed", "preparing", "ready", "delivered"];
 }
 
 function filteredOrders() {
   const query = normalizeSearch(orderSearch);
   return orders.filter((order) => {
-    const status = order.orderStatus || order.status || "new";
+    const status = normalizeAdminStatus(order.orderStatus || order.status || "pending");
     if (orderStatusFilter !== "all" && status !== orderStatusFilter) return false;
     if (!query) return true;
     return normalizeSearch([
@@ -716,7 +726,7 @@ function renderOrderStats() {
   if (!root) return;
   const today = new Date().toDateString();
   const todayOrders = orders.filter((order) => orderDate(order).toDateString() === today);
-  const openOrders = orders.filter((order) => !["delivered", "completed", "cancelled"].includes(order.orderStatus || order.status || "new"));
+  const openOrders = orders.filter((order) => !["delivered", "cancelled"].includes(normalizeAdminStatus(order.orderStatus || order.status || "pending")));
   const revenue = todayOrders
     .filter((order) => order.paymentStatus !== "cancelled")
     .reduce((sum, order) => sum + Number(order.subtotal || 0), 0);
@@ -758,10 +768,14 @@ function printKitchenTicket(order) {
 }
 
 function statusOption(value, selected) {
-  return `<option value="${value}" ${value === (selected || "new") ? "selected" : ""}>${statusLabel(value)}</option>`;
+  return `<option value="${value}" ${value === normalizeAdminStatus(selected || "pending") ? "selected" : ""}>${statusLabel(value)}</option>`;
 }
 
 function statusLabel(status) {
+  const normalized = normalizeAdminStatus(status);
+  if (normalized === "pending") return adminLang === "ar" ? "قيد الانتظار" : adminLang === "de" ? "Ausstehend" : "Pending";
+  if (normalized === "confirmed") return adminLang === "ar" ? "تم التأكيد" : adminLang === "de" ? "Bestaetigt" : "Confirmed";
+  if (normalized === "on_the_way") return adminLang === "ar" ? "في الطريق" : adminLang === "de" ? "Unterwegs" : "On The Way";
   if (status === "out_for_delivery") {
     return adminLang === "ar" ? "في الطريق" : adminLang === "de" ? "Unterwegs" : "Onderweg";
   }
@@ -777,6 +791,16 @@ function statusLabel(status) {
   const translated = tr(keys[status] || "orderNew");
   if (translated === keys[status]) return fallback[adminLang]?.[status] || fallback.nl[status] || tr("orderNew");
   return translated;
+}
+
+function normalizeAdminStatus(status) {
+  const aliases = {
+    new: "pending",
+    accepted: "confirmed",
+    out_for_delivery: "on_the_way",
+    completed: "delivered"
+  };
+  return aliases[status] || status || "pending";
 }
 
 function getReadOrders() {
@@ -803,9 +827,20 @@ function updateOrdersBadge() {
 
 function playOrderSound() {
   try {
-    const audio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
-    audio.volume = 0.35;
-    audio.play().catch(() => {});
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const context = new AudioContext();
+    [0, 0.16, 0.32].forEach((offset) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, context.currentTime + offset);
+      gain.gain.exponentialRampToValueAtTime(0.22, context.currentTime + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + offset + 0.12);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(context.currentTime + offset);
+      oscillator.stop(context.currentTime + offset + 0.14);
+    });
   } catch {
     // Browser audio can be blocked until the admin interacts with the page.
   }

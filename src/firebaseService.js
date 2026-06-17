@@ -160,14 +160,36 @@ export async function createFirebaseOrder(order) {
   const cleanOrder = normalizeOrder(order);
   const ref = firebase.firestoreMod.doc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION));
   const orderNumber = formatOrderNumber(ref.id);
-  await firebase.firestoreMod.setDoc(ref, {
+  const payload = {
     ...cleanOrder,
     orderNumber,
-    status: "new",
-    orderStatus: "new",
+    status: "pending",
+    orderStatus: "pending",
     createdAt: firebase.firestoreMod.serverTimestamp(),
     updatedAt: firebase.firestoreMod.serverTimestamp()
+  };
+  console.info("[OrderFlow] Firestore write started", {
+    collection: ORDERS_COLLECTION,
+    documentId: ref.id,
+    orderNumber,
+    itemCount: payload.itemCount,
+    paymentMethod: payload.paymentMethod
   });
+  try {
+    await firebase.firestoreMod.setDoc(ref, payload);
+    console.info("[OrderFlow] Firestore write success", {
+      collection: ORDERS_COLLECTION,
+      documentId: ref.id,
+      orderNumber
+    });
+  } catch (error) {
+    console.error("[OrderFlow] Firestore write failed", {
+      collection: ORDERS_COLLECTION,
+      documentId: ref.id,
+      message: error?.message || String(error)
+    });
+    throw error;
+  }
   return { id: ref.id, orderNumber };
 }
 
@@ -221,12 +243,19 @@ export async function subscribeFirebaseOrders(callback, onError) {
     firebase.firestoreMod.orderBy("createdAt", "desc"),
     firebase.firestoreMod.limit(80)
   );
+  console.info("[OrderFlow] Admin listener connected", {
+    collection: ORDERS_COLLECTION,
+    query: "orderBy(createdAt, desc), limit(80)"
+  });
   return firebase.firestoreMod.onSnapshot(
     queryRef,
     (snapshot) => {
-      callback(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const orders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      console.info("[OrderFlow] Admin listener snapshot", { count: orders.length });
+      callback(orders);
     },
     (error) => {
+      console.error("[OrderFlow] Admin listener failed", { message: error?.message || String(error) });
       if (onError) onError(error);
     }
   );
@@ -237,12 +266,12 @@ export async function updateFirebaseOrderStatus(orderId, status) {
   if (!firebase) {
     throw new Error(CONFIG_ERROR);
   }
-  if (!["new", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "completed", "cancelled"].includes(status)) {
+  if (!["pending", "confirmed", "preparing", "ready", "on_the_way", "delivered", "cancelled", "new", "accepted", "out_for_delivery", "completed"].includes(status)) {
     throw new Error("Invalid order status.");
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
-    status,
-    orderStatus: status,
+    status: normalizeStatusForWrite(status),
+    orderStatus: normalizeStatusForWrite(status),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   });
 }
@@ -328,6 +357,16 @@ function normalizeOrder(order) {
     paymentStatus: paymentMethod === "stripe" || paymentMethod === "mollie" ? "pending" : "unpaid",
     source: "website"
   };
+}
+
+function normalizeStatusForWrite(status) {
+  const aliases = {
+    new: "pending",
+    accepted: "confirmed",
+    out_for_delivery: "on_the_way",
+    completed: "delivered"
+  };
+  return aliases[status] || status;
 }
 
 function formatOrderNumber(value) {

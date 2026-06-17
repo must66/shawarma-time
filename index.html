@@ -26,7 +26,7 @@
         }
       }());
     </script>
-    <link rel="stylesheet" href="src/styles.css?v=20260617-order-tracking" />
+    <link rel="stylesheet" href="src/styles.css?v=20260617-order-flow-fix" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -142,13 +142,13 @@
               <label><span id="checkoutNotesLabel">Opmerking</span><textarea name="notes"></textarea></label>
               <fieldset class="payment-methods checkout-payments">
                 <legend id="checkoutPaymentMethodLabel">Betaalmethode</legend>
-                <label class="payment-primary">
-                  <input type="radio" name="paymentMethod" value="mollie" checked />
+                <label>
+                  <input type="radio" name="paymentMethod" value="mollie" />
                   <span id="checkoutMollieLabel">iDEAL online betalen</span>
                   <small id="checkoutMollieNote">iDEAL, Apple Pay, Google Pay en kaart via Mollie</small>
                 </label>
-                <label>
-                  <input type="radio" name="paymentMethod" value="cash" />
+                <label class="payment-primary">
+                  <input type="radio" name="paymentMethod" value="cash" checked />
                   <span id="checkoutCashLabel">Contant bij bezorging</span>
                 </label>
                 <label>
@@ -304,6 +304,6 @@
       <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260617-order-tracking"></script>
+    <script type="module" src="src/app.js?v=20260617-order-flow-fix"></script>
   </body>
 </html>

@@ -677,9 +677,14 @@ html[dir="rtl"] .admin-sidebar nav button {
   font-weight: 950;
 }
 
-.order-status.new {
+.order-status.pending {
   background: rgba(255, 122, 26, .18);
   color: #ffd39a;
+}
+
+.order-status.confirmed {
+  background: rgba(255, 191, 88, .14);
+  color: #ffe2a8;
 }
 
 .order-status.preparing {
@@ -697,7 +702,7 @@ html[dir="rtl"] .admin-sidebar nav button {
   color: #9ef8ff;
 }
 
-.order-status.out_for_delivery {
+.order-status.on_the_way {
   background: rgba(255, 122, 26, .18);
   color: #ffd39a;
 }
@@ -774,7 +779,7 @@ html[dir="rtl"] .admin-sidebar nav button {
   cursor: pointer;
 }
 
-.status-chip.accepted {
+.status-chip.confirmed {
   color: #ffd39a;
 }
 
@@ -783,7 +788,7 @@ html[dir="rtl"] .admin-sidebar nav button {
 }
 
 .status-chip.ready,
-.status-chip.out_for_delivery {
+.status-chip.on_the_way {
   color: #9ef8ff;
 }
 

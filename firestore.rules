@@ -14,8 +14,8 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow create: if request.resource.data.status == "new"
-        && request.resource.data.orderStatus == "new"
+      allow create: if request.resource.data.status in ["pending", "new"]
+        && request.resource.data.orderStatus in ["pending", "new"]
         && request.resource.data.source == "website"
         && request.resource.data.paymentMethod in ["cash", "restaurant", "stripe", "mollie"]
         && request.resource.data.paymentStatus in ["unpaid", "pending"]

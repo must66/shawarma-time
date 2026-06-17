@@ -1,6 +1,6 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-tracking";
+import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-flow-fix";
 import { paymentConfig } from "./paymentConfig.js";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
@@ -14,9 +14,6 @@ let modalQuantity = 1;
 const isProduction = !["localhost", "127.0.0.1", ""].includes(window.location.hostname);
 
 if (isProduction) {
-  ["debug", "log", "info", "warn", "error"].forEach((method) => {
-    console[method] = () => {};
-  });
   window.addEventListener("error", (event) => {
     event.preventDefault();
     setStatus("", false);
@@ -29,6 +26,7 @@ if (isProduction) {
 }
 
 const $ = (selector) => document.querySelector(selector);
+const orderLog = (event, details = {}) => console.info(`[OrderFlow] ${event}`, details);
 const routeSections = {
   "/": "home",
   "/menu": "home",
@@ -86,10 +84,12 @@ const orderingUi = {
       retryPayment: "Opnieuw proberen",
       trackEyebrow: "Bestelstatus",
       trackTitle: "Volg je bestelling",
-      orderReceived: "Bestelling ontvangen",
-      accepted: "Geaccepteerd",
+      orderReceived: "In afwachting",
+      confirmed: "Bevestigd",
+      accepted: "Bevestigd",
       preparing: "In bereiding",
       readyForPickup: "Klaar voor afhalen",
+      onTheWay: "Onderweg",
       outForDelivery: "Onderweg",
       delivered: "Afgeleverd",
       cancelled: "Geannuleerd",
@@ -157,10 +157,12 @@ const orderingUi = {
       retryPayment: "حاول مرة أخرى",
       trackEyebrow: "حالة الطلب",
       trackTitle: "تتبع طلبك",
-      orderReceived: "تم استلام الطلب",
-      accepted: "تم قبول الطلب",
+      orderReceived: "قيد الانتظار",
+      confirmed: "تم التأكيد",
+      accepted: "تم التأكيد",
       preparing: "قيد التحضير",
       readyForPickup: "جاهز للاستلام",
+      onTheWay: "في الطريق",
       outForDelivery: "في الطريق",
       delivered: "تم التسليم",
       cancelled: "ملغي",
@@ -228,10 +230,12 @@ const orderingUi = {
       retryPayment: "Erneut versuchen",
       trackEyebrow: "Bestellstatus",
       trackTitle: "Bestellung verfolgen",
-      orderReceived: "Bestellung erhalten",
-      accepted: "Angenommen",
+      orderReceived: "Ausstehend",
+      confirmed: "Bestaetigt",
+      accepted: "Bestaetigt",
       preparing: "In Vorbereitung",
       readyForPickup: "Bereit zur Abholung",
+      onTheWay: "Unterwegs",
       outForDelivery: "Unterwegs",
       delivered: "Geliefert",
       cancelled: "Storniert",
@@ -349,11 +353,13 @@ const orderingUi = {
       retryPayment: "Try again",
       trackEyebrow: "Order status",
       trackTitle: "Track your order",
-      orderReceived: "Order Received",
-      accepted: "Accepted",
+      orderReceived: "Pending",
+      confirmed: "Confirmed",
+      accepted: "Confirmed",
       preparing: "Preparing",
       readyForPickup: "Ready for Pickup",
-      outForDelivery: "Out for Delivery",
+      onTheWay: "On The Way",
+      outForDelivery: "On The Way",
       delivered: "Delivered",
       cancelled: "Cancelled",
       estimatedPrep: "Estimated preparation",
@@ -1001,19 +1007,28 @@ async function submitCart(event) {
       },
       paymentMethod
     };
+    orderLog("Order payload created", {
+      itemCount: orderPayload.items.length,
+      paymentMethod,
+      fulfillment: orderPayload.customer.fulfillment,
+      customerPhone: orderPayload.customer.phone
+    });
     if (paymentMethod === "mollie") {
       setStatus(t("section.mollieRedirect"), false);
       await redirectToMolliePayment(orderPayload);
       return;
     }
     const total = cartTotal();
+    orderLog("Firestore write requested from checkout", { total, collection: "orders" });
     const savedOrder = await createFirebaseOrder(orderPayload);
+    orderLog("Firestore write returned to checkout", savedOrder);
     notifyOrderCreated(savedOrder.id, orderPayload, total);
     showOrderSuccess(savedOrder, total, paymentMethod, orderPayload);
     cart = [];
     cartForm.reset();
     renderCart();
   } catch (error) {
+    orderLog("Order submission failed", { message: error?.message || String(error) });
     setStatus(customerSafeErrorMessage(error, paymentMethod), true);
   } finally {
     $("#submitOrderBtn").disabled = false;
@@ -1074,16 +1089,19 @@ function fulfillmentText(value) {
 function renderTracking(order = getLastOrder()) {
   const root = $("#trackSteps");
   if (!root) return;
-  const current = order?.orderStatus || order?.status || "new";
+  const current = normalizeOrderStatus(order?.orderStatus || order?.status || "pending");
   const fulfillment = order?.customer?.fulfillment || "pickup";
   const statuses = trackingStatuses(fulfillment, current);
   const index = statuses.indexOf(current);
   const labels = {
+    pending: t("section.orderReceived"),
     new: t("section.orderReceived"),
-    accepted: t("section.accepted"),
+    confirmed: t("section.confirmed"),
+    accepted: t("section.confirmed"),
     preparing: t("section.preparing"),
     ready: t("section.readyForPickup"),
-    out_for_delivery: t("section.outForDelivery"),
+    on_the_way: t("section.onTheWay"),
+    out_for_delivery: t("section.onTheWay"),
     delivered: t("section.delivered"),
     cancelled: t("section.cancelled")
   };
@@ -1109,10 +1127,10 @@ function renderTracking(order = getLastOrder()) {
 }
 
 function trackingStatuses(fulfillment, current) {
-  if (current === "cancelled") return ["new", "accepted", "preparing", "cancelled"];
+  if (current === "cancelled") return ["pending", "confirmed", "preparing", "cancelled"];
   return fulfillment === "delivery"
-    ? ["new", "accepted", "preparing", "out_for_delivery", "delivered"]
-    : ["new", "accepted", "preparing", "ready", "delivered"];
+    ? ["pending", "confirmed", "preparing", "on_the_way", "delivered"]
+    : ["pending", "confirmed", "preparing", "ready", "delivered"];
 }
 
 function estimatedPrepTime(order) {
@@ -1121,11 +1139,22 @@ function estimatedPrepTime(order) {
 
 function remainingTime(order, current) {
   if (!order?.orderNumber) return "-";
-  if (["ready", "out_for_delivery", "delivered", "cancelled"].includes(current)) return "0 min";
+  if (["ready", "on_the_way", "delivered", "cancelled"].includes(current)) return "0 min";
   const created = orderTimestamp(order.createdAt);
   const totalMinutes = order?.customer?.fulfillment === "delivery" ? 40 : 30;
   const elapsed = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
   return `${Math.max(0, totalMinutes - elapsed)} min`;
+}
+
+function normalizeOrderStatus(status) {
+  const value = String(status || "pending");
+  const aliases = {
+    new: "pending",
+    accepted: "confirmed",
+    out_for_delivery: "on_the_way",
+    completed: "delivered"
+  };
+  return aliases[value] || value;
 }
 
 function orderTimestamp(value) {
