@@ -1,7 +1,7 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
 import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-flow-fix";
-import { paymentConfig } from "./paymentConfig.js";
+import { paymentConfig } from "./paymentConfig.js?v=20260617-host-functions";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
