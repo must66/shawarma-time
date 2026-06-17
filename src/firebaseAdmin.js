@@ -9,7 +9,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260618-admin-notification-diagnostics";
+} from "./firebaseService.js?v=20260618-admin-listener-audit";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -36,7 +36,7 @@ let orderAlertAudio = null;
 let orderAlertAudioLoaded = false;
 let orderAlertAudioError = "";
 const readOrdersKey = "shawarma-time-read-orders";
-const orderAlertSoundUrl = new URL("../admin-order-alert.wav?v=20260618-admin-notification-diagnostics", import.meta.url).href;
+const orderAlertSoundUrl = new URL("../admin-order-alert.wav?v=20260618-admin-listener-audit", import.meta.url).href;
 
 const adminText = {
   nl: {
@@ -639,8 +639,11 @@ async function startOrdersFeed() {
   unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders, changeInfo = {}) => {
     ordersError = "";
     const incomingIds = new Set(incomingOrders.map((order) => order.id));
-    if (!changeInfo.initialized) markOrdersRead(changeInfo.initialOrderIds || incomingOrders.map((order) => order.id), false);
-    const freshOrders = (changeInfo.addedOrders || []).filter((order) => !knownOrderIds.has(order.id));
+    const isInitialSnapshot = !changeInfo.initialized;
+    if (isInitialSnapshot) markOrdersRead(changeInfo.initialOrderIds || incomingOrders.map((order) => order.id), false);
+    const freshOrders = isInitialSnapshot
+      ? []
+      : (changeInfo.addedOrders || []).filter((order) => !knownOrderIds.has(order.id));
     console.info("[OrderFlow] Added order changes detected", {
       initialized: changeInfo.initialized,
       addedCount: changeInfo.addedOrders?.length || 0,
@@ -658,6 +661,7 @@ async function startOrdersFeed() {
         status: order.orderStatus || order.status
       })));
       freshOrders.forEach((order, index) => {
+        console.log("added order", order.id);
         playOrderSound(index * 0.45);
         showOrderNotification(order);
       });

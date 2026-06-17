@@ -205,6 +205,7 @@ export async function subscribeFirebaseOrders(callback, onError) {
     firebase.firestoreMod.orderBy("createdAt", "desc"),
     firebase.firestoreMod.limit(80)
   );
+  console.log("listener active");
   console.info("[OrderFlow] Admin listener connected", {
     collection: ORDERS_COLLECTION,
     query: "orderBy(createdAt, desc), limit(80)"
@@ -213,17 +214,22 @@ export async function subscribeFirebaseOrders(callback, onError) {
     queryRef,
     (snapshot) => {
       const orders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      const addedOrders = snapshot.docChanges()
-        .filter((change) => change.type === "added")
-        .map((change) => ({ id: change.doc.id, ...change.doc.data() }));
+      const addedOrders = [];
+      console.log("snapshot size", snapshot.size);
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          console.log("added order", change.doc.id);
+          addedOrders.push({ id: change.doc.id, ...change.doc.data() });
+        }
+      });
       console.info("[OrderFlow] Admin listener snapshot", {
         count: orders.length,
         added: addedOrders.length,
         initialized
       });
       callback(orders, {
-        addedOrders: initialized ? addedOrders : [],
-        initialOrderIds: initialized ? [] : addedOrders.map((order) => order.id),
+        addedOrders,
+        initialOrderIds: initialized ? [] : orders.map((order) => order.id),
         initialized
       });
       initialized = true;
