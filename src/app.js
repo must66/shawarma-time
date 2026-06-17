@@ -1047,7 +1047,8 @@ function showOrderSuccess(savedOrder, total, paymentMethod, orderPayload) {
     paymentStatus: paymentMethod === "mollie" ? "paid" : "unpaid",
     customer: orderPayload.customer,
     items: orderPayload.items,
-    status: "new",
+    status: "pending",
+    orderStatus: "pending",
     createdAt: new Date().toISOString()
   };
   sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));
@@ -1108,7 +1109,7 @@ function renderTracking(order = getLastOrder()) {
   root.innerHTML = `
     <div class="track-summary">
       <p><span>${t("section.orderNumber")}</span><strong>${escapeHtml(order?.orderNumber || "-")}</strong></p>
-      <p><span>${t("section.liveTracking")}</span><strong>${labels[current] || labels.new}</strong></p>
+      <p><span>${t("section.liveTracking")}</span><strong>${labels[current] || labels.pending}</strong></p>
       <p><span>${t("section.estimatedPrep")}</span><strong>${estimatedPrepTime(order)}</strong></p>
       <p><span>${t("section.remainingTime")}</span><strong>${remainingTime(order, current)}</strong></p>
     </div>
@@ -1188,7 +1189,8 @@ async function startOrderTracking(orderNumber) {
     }
     const trackedOrder = {
       ...order,
-      status: order.orderStatus || order.status || "new",
+      status: order.orderStatus || order.status || "pending",
+      orderStatus: order.orderStatus || order.status || "pending",
       orderNumber: order.orderNumber || requested
     };
     sessionStorage.setItem("shawarma-time-last-order", JSON.stringify({
@@ -1285,7 +1287,8 @@ async function redirectToMolliePayment(orderPayload) {
     paymentStatus: "pending",
     customer: orderPayload.customer,
     items: orderPayload.items,
-    status: "new",
+    status: "pending",
+    orderStatus: "pending",
     createdAt: new Date().toISOString()
   }));
   window.location.href = payload.url;
@@ -1357,9 +1360,12 @@ function renderPaymentReturnMessage() {
       prepTime: t("section.defaultPrepTime"),
       paymentStatus: "paid",
       customer: { fulfillment: "pickup" },
-      status: "new"
+      status: "pending",
+      orderStatus: "pending"
     };
     successData.paymentStatus = "paid";
+    successData.status = normalizeOrderStatus(successData.orderStatus || successData.status || "pending");
+    successData.orderStatus = successData.status;
     sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));
     sessionStorage.removeItem("shawarma-time-pending-online-order");
     cart = [];
