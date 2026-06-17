@@ -225,7 +225,7 @@ export async function updateFirebaseOrderStatus(orderId, status) {
   if (!firebase) {
     throw new Error(CONFIG_ERROR);
   }
-  if (!["pending", "confirmed", "preparing", "ready", "on_the_way", "delivered", "cancelled", "new", "accepted", "out_for_delivery", "completed"].includes(status)) {
+  if (!["pending", "accepted", "preparing", "ready", "completed", "cancelled", "new", "confirmed", "out_for_delivery", "on_the_way", "delivered"].includes(status)) {
     throw new Error("Invalid order status.");
   }
   await firebase.firestoreMod.updateDoc(firebase.firestoreMod.doc(firebase.db, ORDERS_COLLECTION, orderId), {
@@ -287,9 +287,10 @@ function validateImage(file) {
 function normalizeStatusForWrite(status) {
   const aliases = {
     new: "pending",
-    accepted: "confirmed",
-    out_for_delivery: "on_the_way",
-    completed: "delivered"
+    confirmed: "accepted",
+    out_for_delivery: "ready",
+    on_the_way: "ready",
+    delivered: "completed"
   };
   return aliases[status] || status;
 }

@@ -8,7 +8,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260617-card-only-orders";
+} from "./firebaseService.js?v=20260617-admin-realtime-orders";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -592,7 +592,7 @@ async function startOrdersFeed() {
         orderNumber: order.orderNumber,
         status: order.orderStatus || order.status
       })));
-      playOrderSound();
+      freshOrders.forEach((order, index) => playOrderSound(index * 0.45));
       note(`${freshOrders.length} ${tr("ordersTitle")}`);
     }
     knownOrderIds = incomingIds;
@@ -648,11 +648,10 @@ function renderOrders() {
         <span>${tr("orderStatus")}</span>
         <select data-order-status="${order.id}">
           ${statusOption("pending", order.orderStatus || order.status)}
-          ${statusOption("confirmed", order.orderStatus || order.status)}
+          ${statusOption("accepted", order.orderStatus || order.status)}
           ${statusOption("preparing", order.orderStatus || order.status)}
           ${statusOption("ready", order.orderStatus || order.status)}
-          ${statusOption("on_the_way", order.orderStatus || order.status)}
-          ${statusOption("delivered", order.orderStatus || order.status)}
+          ${statusOption("completed", order.orderStatus || order.status)}
           ${statusOption("cancelled", order.orderStatus || order.status)}
         </select>
       </label>
@@ -699,10 +698,7 @@ function renderOrders() {
 }
 
 function adminStatusFlow(order) {
-  const fulfillment = order.customer?.fulfillment || "pickup";
-  return fulfillment === "delivery"
-    ? ["confirmed", "preparing", "on_the_way", "delivered"]
-    : ["confirmed", "preparing", "ready", "delivered"];
+  return ["accepted", "preparing", "ready", "completed"];
 }
 
 function filteredOrders() {
@@ -726,7 +722,7 @@ function renderOrderStats() {
   if (!root) return;
   const today = new Date().toDateString();
   const todayOrders = orders.filter((order) => orderDate(order).toDateString() === today);
-  const openOrders = orders.filter((order) => !["delivered", "cancelled"].includes(normalizeAdminStatus(order.orderStatus || order.status || "pending")));
+  const openOrders = orders.filter((order) => !["completed", "cancelled"].includes(normalizeAdminStatus(order.orderStatus || order.status || "pending")));
   const revenue = todayOrders
     .filter((order) => order.paymentStatus !== "cancelled")
     .reduce((sum, order) => sum + Number(order.subtotal || 0), 0);
@@ -773,6 +769,15 @@ function statusOption(value, selected) {
 
 function statusLabel(status) {
   const normalized = normalizeAdminStatus(status);
+  const flowLabels = {
+    pending: "Pending",
+    accepted: "Accepted",
+    preparing: "Preparing",
+    ready: "Ready",
+    completed: "Completed",
+    cancelled: "Cancelled"
+  };
+  if (flowLabels[normalized]) return flowLabels[normalized];
   if (normalized === "pending") return adminLang === "ar" ? "قيد الانتظار" : adminLang === "de" ? "Ausstehend" : "Pending";
   if (normalized === "confirmed") return adminLang === "ar" ? "تم التأكيد" : adminLang === "de" ? "Bestaetigt" : "Confirmed";
   if (normalized === "on_the_way") return adminLang === "ar" ? "في الطريق" : adminLang === "de" ? "Unterwegs" : "On The Way";
@@ -796,9 +801,10 @@ function statusLabel(status) {
 function normalizeAdminStatus(status) {
   const aliases = {
     new: "pending",
-    accepted: "confirmed",
-    out_for_delivery: "on_the_way",
-    completed: "delivered"
+    confirmed: "accepted",
+    out_for_delivery: "ready",
+    on_the_way: "ready",
+    delivered: "completed"
   };
   return aliases[status] || status || "pending";
 }
@@ -825,7 +831,7 @@ function updateOrdersBadge() {
   badge.classList.toggle("hidden", unread === 0);
 }
 
-function playOrderSound() {
+function playOrderSound(delay = 0) {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const context = new AudioContext();
@@ -834,12 +840,12 @@ function playOrderSound() {
       const gain = context.createGain();
       oscillator.type = "sine";
       oscillator.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, context.currentTime + offset);
-      gain.gain.exponentialRampToValueAtTime(0.22, context.currentTime + offset + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + offset + 0.12);
+      gain.gain.setValueAtTime(0.0001, context.currentTime + delay + offset);
+      gain.gain.exponentialRampToValueAtTime(0.22, context.currentTime + delay + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + delay + offset + 0.12);
       oscillator.connect(gain).connect(context.destination);
-      oscillator.start(context.currentTime + offset);
-      oscillator.stop(context.currentTime + offset + 0.14);
+      oscillator.start(context.currentTime + delay + offset);
+      oscillator.stop(context.currentTime + delay + offset + 0.14);
     });
   } catch {
     // Browser audio can be blocked until the admin interacts with the page.
