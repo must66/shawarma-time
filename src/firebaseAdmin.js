@@ -8,7 +8,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260616-platform-stable";
+} from "./firebaseService.js?v=20260617-order-write-fix";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];

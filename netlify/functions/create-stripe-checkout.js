@@ -27,8 +27,10 @@ export async function handler(event) {
     if (!order.items.length) return json(400, { error: "Order is missing items." });
 
     const checkoutRef = getAdminDb().collection("stripeCheckouts").doc();
+    const orderNumber = formatOrderNumber(checkoutRef.id);
     await checkoutRef.set({
       order,
+      orderNumber,
       status: "pending",
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
@@ -56,7 +58,7 @@ export async function handler(event) {
     });
 
     await checkoutRef.set({ stripeSessionId: session.id }, { merge: true });
-    return json(200, { url: session.url, checkoutId: checkoutRef.id });
+    return json(200, { url: session.url, checkoutId: checkoutRef.id, orderNumber });
   } catch (error) {
     return json(500, { error: error.message || "Could not create Stripe Checkout session." });
   }
@@ -88,6 +90,10 @@ function normalizeOrder(order) {
     paymentStatus: "pending",
     source: "website"
   };
+}
+
+function formatOrderNumber(value) {
+  return `ST-${String(value || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
 function json(statusCode, body) {

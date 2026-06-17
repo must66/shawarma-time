@@ -52,10 +52,11 @@ async function createPaidOrder(session) {
 
   const order = {
     ...checkout.order,
+    orderNumber: checkout.orderNumber || formatOrderNumber(checkoutId),
     paymentMethod: "stripe",
     paymentStatus: "paid",
-    orderStatus: "new",
-    status: "new",
+    orderStatus: "pending",
+    status: "pending",
     stripeSessionId: session.id,
     stripePaymentIntentId: session.payment_intent || "",
     paidAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -68,7 +69,7 @@ async function createPaidOrder(session) {
     orderId: orderRef.id,
     completedAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
-  await sendOrderEmail(orderRef.id, { ...checkout.order, paymentMethod: "stripe", paymentStatus: "paid" });
+  await sendOrderEmail(orderRef.id, { ...checkout.order, orderNumber: order.orderNumber, paymentMethod: "stripe", paymentStatus: "paid" });
 }
 
 async function sendOrderEmail(orderId, order) {
@@ -116,6 +117,10 @@ function htmlOrder(orderId, order) {
 
 function formatTotal(value) {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(Number(value || 0));
+}
+
+function formatOrderNumber(value) {
+  return `ST-${String(value || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
 function escapeHtml(value) {

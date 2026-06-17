@@ -1,7 +1,7 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-flow-fix";
-import { paymentConfig } from "./paymentConfig.js?v=20260617-host-functions";
+import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-write-fix";
+import { paymentConfig } from "./paymentConfig.js?v=20260617-order-write-fix";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
@@ -932,6 +932,7 @@ function renderCheckout() {
   $("#checkoutMollieNote").textContent = t("section.mollieWallets");
   $("#checkoutCashLabel").textContent = t("section.cashOnDelivery");
   $("#checkoutRestaurantLabel").textContent = t("section.payAtRestaurant");
+  syncPaymentAvailability();
   $("#submitOrderBtn").textContent = t("section.submitOrder");
   $("#checkoutSubtotalLabel").textContent = t("section.subtotal");
   $("#checkoutSubtotal").textContent = euro(cartTotal());
@@ -946,6 +947,23 @@ function renderCheckout() {
       <b>${euro(item.priceValue * item.quantity)}</b>
     </article>
   `).join("") : `<p class="cart-empty">${t("section.cartEmpty")}</p>`;
+}
+
+function syncPaymentAvailability() {
+  const mollieInput = document.querySelector('input[name="paymentMethod"][value="mollie"]');
+  const mollieOption = $("#molliePaymentOption") || mollieInput?.closest("label");
+  const onlineAvailable = Boolean(paymentConfig.molliePaymentEndpoint);
+  if (mollieInput) mollieInput.disabled = !onlineAvailable;
+  if (mollieOption) mollieOption.hidden = !onlineAvailable;
+  if (!onlineAvailable && mollieInput?.checked) {
+    const cashInput = document.querySelector('input[name="paymentMethod"][value="cash"]');
+    if (cashInput) cashInput.checked = true;
+  }
+}
+
+function normalizePaymentMethod(value) {
+  if (value === "mollie" && !paymentConfig.molliePaymentEndpoint) return "cash";
+  return ["cash", "restaurant", "mollie"].includes(value) ? value : "cash";
 }
 
 function euro(value) {
@@ -990,7 +1008,7 @@ async function submitCart(event) {
   }
   const cartForm = event.currentTarget;
   const form = new FormData(cartForm);
-  const paymentMethod = form.get("paymentMethod") || "cash";
+  const paymentMethod = normalizePaymentMethod(form.get("paymentMethod"));
   setStatus(t("section.submitOrder"), false);
   $("#submitOrderBtn").disabled = true;
   try {
