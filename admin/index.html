@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="192x192" href="../apple-touch-icon.png?v=20260617-st-gold" />
     <link rel="manifest" href="../site.webmanifest?v=20260617-st-gold" />
     <link rel="stylesheet" href="../src/styles.css?v=20260616-platform-stable" />
-    <link rel="stylesheet" href="../src/admin.css?v=20260616-platform-stable" />
+    <link rel="stylesheet" href="../src/admin.css?v=20260618-admin-notification-diagnostics" />
   </head>
   <body class="admin-body">
     <main class="admin-shell">
@@ -114,13 +114,20 @@
 
           <section id="notificationsPanel" class="admin-panel">
             <div class="panel-head"><h2 data-admin-i18n="notificationsTitle">Meldingen</h2></div>
-            <article class="admin-card"><p data-admin-i18n="notificationsNote">Opslaan, verwijderen en uploaden tonen meldingen rechtsboven.</p></article>
+            <article class="admin-card">
+              <p data-admin-i18n="notificationsNote">Opslaan, verwijderen en uploaden tonen meldingen rechtsboven.</p>
+              <div class="notification-test-actions">
+                <button class="btn primary" id="testNotificationBtn" type="button">Test Notification</button>
+                <button class="btn ghost" id="testSoundBtn" type="button">Test Sound</button>
+              </div>
+              <p class="form-note" id="notificationStatus">Notification status: checking...</p>
+            </article>
           </section>
         </div>
       </section>
     </main>
     <div class="admin-loader hidden" id="adminLoader"><span>ST</span></div>
     <div class="admin-toast" id="adminToast" role="status" aria-live="polite"></div>
-    <script type="module" src="../src/firebaseAdmin.js?v=20260618-admin-order-alerts"></script>
+    <script type="module" src="../src/firebaseAdmin.js?v=20260618-admin-notification-diagnostics"></script>
   </body>
 </html>

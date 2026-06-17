@@ -79,6 +79,13 @@
   letter-spacing: 0;
 }
 
+.notification-test-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
 .brand {
   color: var(--text);
   text-decoration: none;

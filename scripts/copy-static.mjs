@@ -9,6 +9,7 @@ const files = [
   "favicon-192x192.png",
   "apple-touch-icon.png",
   "site.webmanifest",
+  "admin-order-alert.wav",
   "robots.txt",
   "sitemap.xml",
   ".nojekyll"

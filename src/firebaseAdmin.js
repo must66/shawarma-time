@@ -9,7 +9,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260618-admin-order-alerts";
+} from "./firebaseService.js?v=20260618-admin-notification-diagnostics";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -32,7 +32,11 @@ let orderSearch = "";
 let orderStatusFilter = "all";
 let notificationPermissionRequested = false;
 let orderAudioContext = null;
+let orderAlertAudio = null;
+let orderAlertAudioLoaded = false;
+let orderAlertAudioError = "";
 const readOrdersKey = "shawarma-time-read-orders";
+const orderAlertSoundUrl = new URL("../admin-order-alert.wav?v=20260618-admin-notification-diagnostics", import.meta.url).href;
 
 const adminText = {
   nl: {
@@ -441,6 +445,11 @@ function note(message) {
   }, 2200);
 }
 
+function logNotificationDebug(message, details = {}) {
+  console.info(`[AdminNotify] ${message}`, details);
+  updateNotificationStatus();
+}
+
 function loading(active) {
   $("#adminLoader").classList.toggle("hidden", !active);
 }
@@ -461,6 +470,7 @@ async function showDashboard(session) {
   currentSession = session;
   $("#loginView").classList.add("hidden");
   $("#dashboardView").classList.remove("hidden");
+  setupOrderAlertAudio();
   unlockOrderSound();
   requestNotificationPermission();
   renderRole();
@@ -499,6 +509,7 @@ $("#loginForm").addEventListener("submit", async (event) => {
     if (username !== temporaryAdminCredentials.username || password !== temporaryAdminCredentials.password) {
       throw new Error("Temporary credentials are incorrect.");
     }
+    requestNotificationPermission();
     const user = await signInAdmin(username, password);
     await showDashboard({
       user,
@@ -577,6 +588,24 @@ $("#addCategoryBtn")?.addEventListener("click", () => {
   renderCategoriesAdmin();
 });
 
+$("#testNotificationBtn")?.addEventListener("click", async () => {
+  const permission = await requestNotificationPermission(true);
+  logNotificationDebug("Test notification requested", { permission });
+  showOrderNotification({
+    id: `test-${Date.now()}`,
+    orderNumber: "TEST",
+    customer: { name: "Test Customer" }
+  }, true);
+});
+
+$("#testSoundBtn")?.addEventListener("click", async () => {
+  logNotificationDebug("Test sound requested", {
+    audioLoaded: orderAlertAudioLoaded,
+    audioError: orderAlertAudioError
+  });
+  await playOrderSound(0, true);
+});
+
 async function bootAdmin() {
   showRestoringSession();
   loading(true);
@@ -612,6 +641,16 @@ async function startOrdersFeed() {
     const incomingIds = new Set(incomingOrders.map((order) => order.id));
     if (!changeInfo.initialized) markOrdersRead(changeInfo.initialOrderIds || incomingOrders.map((order) => order.id), false);
     const freshOrders = (changeInfo.addedOrders || []).filter((order) => !knownOrderIds.has(order.id));
+    console.info("[OrderFlow] Added order changes detected", {
+      initialized: changeInfo.initialized,
+      addedCount: changeInfo.addedOrders?.length || 0,
+      freshCount: freshOrders.length,
+      addedOrders: (changeInfo.addedOrders || []).map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        customer: order.customer?.name || ""
+      }))
+    });
     if (freshOrders.length) {
       console.info("[OrderFlow] New order received by admin", freshOrders.map((order) => ({
         id: order.id,
@@ -863,8 +902,33 @@ function updateOrdersBadge() {
   badge.classList.toggle("hidden", unread === 0);
 }
 
+function setupOrderAlertAudio() {
+  if (orderAlertAudio) return orderAlertAudio;
+  orderAlertAudio = new Audio(orderAlertSoundUrl);
+  orderAlertAudio.preload = "auto";
+  orderAlertAudio.addEventListener("canplaythrough", () => {
+    orderAlertAudioLoaded = true;
+    orderAlertAudioError = "";
+    logNotificationDebug("Audio file loaded", { src: orderAlertSoundUrl });
+  }, { once: true });
+  orderAlertAudio.addEventListener("error", () => {
+    orderAlertAudioLoaded = false;
+    orderAlertAudioError = orderAlertAudio.error?.message || `Audio load failed (${orderAlertAudio.error?.code || "unknown"})`;
+    console.error("[AdminNotify] Audio file failed to load", {
+      src: orderAlertSoundUrl,
+      error: orderAlertAudioError,
+      mediaError: orderAlertAudio.error
+    });
+    updateNotificationStatus();
+  });
+  orderAlertAudio.load();
+  logNotificationDebug("Audio file loading", { src: orderAlertSoundUrl });
+  return orderAlertAudio;
+}
+
 function unlockOrderSound() {
   try {
+    setupOrderAlertAudio();
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     orderAudioContext ||= new AudioContext();
@@ -874,9 +938,44 @@ function unlockOrderSound() {
   }
 }
 
-function playOrderSound(delay = 0) {
+async function playOrderSound(delay = 0, force = false) {
   try {
     unlockOrderSound();
+    const play = async () => {
+      setupOrderAlertAudio();
+      const audio = orderAlertAudio.cloneNode(true);
+      audio.volume = 1;
+      try {
+        await audio.play();
+        logNotificationDebug("Audio play succeeded", {
+          forcedByButton: force,
+          audioLoaded: orderAlertAudioLoaded,
+          notificationPermission: notificationPermission()
+        });
+      } catch (error) {
+        console.error("[AdminNotify] Audio play failed", {
+          name: error?.name,
+          message: error?.message,
+          forcedByButton: force,
+          audioLoaded: orderAlertAudioLoaded,
+          audioError: orderAlertAudioError
+        });
+        logNotificationDebug("Audio play blocked or failed", {
+          name: error?.name,
+          message: error?.message
+        });
+        playOrderSoundFallback(delay);
+      }
+    };
+    if (delay > 0) setTimeout(play, Math.round(delay * 1000));
+    else await play();
+  } catch (error) {
+    console.error("[AdminNotify] Audio play setup failed", { message: error?.message || String(error) });
+  }
+}
+
+function playOrderSoundFallback(delay = 0) {
+  try {
     const context = orderAudioContext;
     if (!context) return;
     [0, 0.16, 0.32].forEach((offset) => {
@@ -896,15 +995,48 @@ function playOrderSound(delay = 0) {
   }
 }
 
-function requestNotificationPermission() {
-  if (notificationPermissionRequested || !("Notification" in window)) return;
-  notificationPermissionRequested = true;
-  if (Notification.permission === "default") Notification.requestPermission().catch(() => {});
+function notificationPermission() {
+  return "Notification" in window ? Notification.permission : "unsupported";
 }
 
-function showOrderNotification(order) {
+async function requestNotificationPermission(force = false) {
+  if (!("Notification" in window)) {
+    logNotificationDebug("Browser notifications unsupported");
+    return "unsupported";
+  }
+  if (notificationPermissionRequested && !force) {
+    logNotificationDebug("Notification permission already requested", { permission: Notification.permission });
+    return Notification.permission;
+  }
+  notificationPermissionRequested = true;
+  if (Notification.permission === "default") {
+    try {
+      const permission = await Notification.requestPermission();
+      logNotificationDebug("Notification permission response", { permission });
+      return permission;
+    } catch (error) {
+      console.error("[AdminNotify] Notification permission request failed", { message: error?.message || String(error) });
+      return Notification.permission;
+    }
+  }
+  logNotificationDebug("Notification permission current", { permission: Notification.permission });
+  return Notification.permission;
+}
+
+function showOrderNotification(order, force = false) {
   requestNotificationPermission();
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (!("Notification" in window)) {
+    logNotificationDebug("Browser notification skipped", { reason: "unsupported" });
+    return;
+  }
+  if (Notification.permission !== "granted") {
+    logNotificationDebug("Browser notification skipped", {
+      reason: "permission-not-granted",
+      permission: Notification.permission,
+      forcedByButton: force
+    });
+    return;
+  }
   const orderNumber = order.orderNumber || order.id.slice(0, 8).toUpperCase();
   const customerName = order.customer?.name || "Customer";
   new Notification("New Order Received", {
@@ -912,9 +1044,26 @@ function showOrderNotification(order) {
     tag: `shawarma-order-${order.id}`,
     icon: "../favicon-192x192.png?v=20260617-st-gold"
   });
+  logNotificationDebug("Browser notification shown", {
+    orderId: order.id,
+    orderNumber,
+    customerName,
+    forcedByButton: force
+  });
+}
+
+function updateNotificationStatus() {
+  const status = $("#notificationStatus");
+  if (!status) return;
+  status.textContent = [
+    `Notification permission: ${notificationPermission()}`,
+    `Sound file: ${orderAlertAudioLoaded ? "loaded" : orderAlertAudioError || "loading"}`,
+    `Autoplay: use Test Sound once if Chrome blocks automatic sound`
+  ].join(" | ");
 }
 
 window.addEventListener("pointerdown", () => {
+  setupOrderAlertAudio();
   unlockOrderSound();
   requestNotificationPermission();
 }, { once: true });
