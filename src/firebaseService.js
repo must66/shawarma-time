@@ -199,6 +199,7 @@ export async function subscribeFirebaseOrderByNumber(orderNumber, callback, onEr
 export async function subscribeFirebaseOrders(callback, onError) {
   const firebase = await getFirebase();
   if (!firebase) return () => {};
+  let initialized = false;
   const queryRef = firebase.firestoreMod.query(
     firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION),
     firebase.firestoreMod.orderBy("createdAt", "desc"),
@@ -212,8 +213,20 @@ export async function subscribeFirebaseOrders(callback, onError) {
     queryRef,
     (snapshot) => {
       const orders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      console.info("[OrderFlow] Admin listener snapshot", { count: orders.length });
-      callback(orders);
+      const addedOrders = snapshot.docChanges()
+        .filter((change) => change.type === "added")
+        .map((change) => ({ id: change.doc.id, ...change.doc.data() }));
+      console.info("[OrderFlow] Admin listener snapshot", {
+        count: orders.length,
+        added: addedOrders.length,
+        initialized
+      });
+      callback(orders, {
+        addedOrders: initialized ? addedOrders : [],
+        initialOrderIds: initialized ? [] : addedOrders.map((order) => order.id),
+        initialized
+      });
+      initialized = true;
     },
     (error) => {
       console.error("[OrderFlow] Admin listener failed", { message: error?.message || String(error) });

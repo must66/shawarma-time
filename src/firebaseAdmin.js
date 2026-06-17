@@ -9,7 +9,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260617-admin-local-auth";
+} from "./firebaseService.js?v=20260618-admin-order-alerts";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -28,9 +28,10 @@ let orders = [];
 let unsubscribeOrders = null;
 let ordersError = "";
 let knownOrderIds = new Set();
-let ordersFeedInitialized = false;
 let orderSearch = "";
 let orderStatusFilter = "all";
+let notificationPermissionRequested = false;
+let orderAudioContext = null;
 const readOrdersKey = "shawarma-time-read-orders";
 
 const adminText = {
@@ -460,6 +461,8 @@ async function showDashboard(session) {
   currentSession = session;
   $("#loginView").classList.add("hidden");
   $("#dashboardView").classList.remove("hidden");
+  unlockOrderSound();
+  requestNotificationPermission();
   renderRole();
   siteData = await loadContent();
   renderAll();
@@ -604,23 +607,24 @@ function renderAll() {
 async function startOrdersFeed() {
   if (unsubscribeOrders || !isFirebaseConfigured()) return;
   console.info("[OrderFlow] Admin connecting realtime orders listener", { collection: "orders" });
-  unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders) => {
+  unsubscribeOrders = await subscribeFirebaseOrders((incomingOrders, changeInfo = {}) => {
     ordersError = "";
     const incomingIds = new Set(incomingOrders.map((order) => order.id));
-    const freshOrders = ordersFeedInitialized
-      ? incomingOrders.filter((order) => !knownOrderIds.has(order.id))
-      : [];
+    if (!changeInfo.initialized) markOrdersRead(changeInfo.initialOrderIds || incomingOrders.map((order) => order.id), false);
+    const freshOrders = (changeInfo.addedOrders || []).filter((order) => !knownOrderIds.has(order.id));
     if (freshOrders.length) {
       console.info("[OrderFlow] New order received by admin", freshOrders.map((order) => ({
         id: order.id,
         orderNumber: order.orderNumber,
         status: order.orderStatus || order.status
       })));
-      freshOrders.forEach((order, index) => playOrderSound(index * 0.45));
+      freshOrders.forEach((order, index) => {
+        playOrderSound(index * 0.45);
+        showOrderNotification(order);
+      });
       note(`${freshOrders.length} ${tr("ordersTitle")}`);
     }
     knownOrderIds = incomingIds;
-    ordersFeedInitialized = true;
     orders = incomingOrders;
     renderOrders();
   }, () => {
@@ -841,9 +845,13 @@ function getReadOrders() {
   }
 }
 
-function markOrdersRead() {
-  localStorage.setItem(readOrdersKey, JSON.stringify(orders.map((order) => order.id)));
-  renderOrders();
+function markOrdersRead(orderIds = orders.map((order) => order.id), shouldRender = true) {
+  const readOrders = getReadOrders();
+  orderIds.forEach((id) => {
+    if (id) readOrders.add(id);
+  });
+  localStorage.setItem(readOrdersKey, JSON.stringify([...readOrders]));
+  if (shouldRender) renderOrders();
 }
 
 function updateOrdersBadge() {
@@ -855,10 +863,22 @@ function updateOrdersBadge() {
   badge.classList.toggle("hidden", unread === 0);
 }
 
-function playOrderSound(delay = 0) {
+function unlockOrderSound() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const context = new AudioContext();
+    if (!AudioContext) return;
+    orderAudioContext ||= new AudioContext();
+    if (orderAudioContext.state === "suspended") orderAudioContext.resume();
+  } catch {
+    // Browser audio can be blocked until the admin interacts with the page.
+  }
+}
+
+function playOrderSound(delay = 0) {
+  try {
+    unlockOrderSound();
+    const context = orderAudioContext;
+    if (!context) return;
     [0, 0.16, 0.32].forEach((offset) => {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
@@ -875,6 +895,29 @@ function playOrderSound(delay = 0) {
     // Browser audio can be blocked until the admin interacts with the page.
   }
 }
+
+function requestNotificationPermission() {
+  if (notificationPermissionRequested || !("Notification" in window)) return;
+  notificationPermissionRequested = true;
+  if (Notification.permission === "default") Notification.requestPermission().catch(() => {});
+}
+
+function showOrderNotification(order) {
+  requestNotificationPermission();
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const orderNumber = order.orderNumber || order.id.slice(0, 8).toUpperCase();
+  const customerName = order.customer?.name || "Customer";
+  new Notification("New Order Received", {
+    body: `#${orderNumber} - ${customerName}`,
+    tag: `shawarma-order-${order.id}`,
+    icon: "../favicon-192x192.png?v=20260617-st-gold"
+  });
+}
+
+window.addEventListener("pointerdown", () => {
+  unlockOrderSound();
+  requestNotificationPermission();
+}, { once: true });
 
 function paymentMethodLabel(method) {
   const keys = { cash: "paymentCash", restaurant: "paymentRestaurant", stripe: "paymentStripe", mollie: "paymentMollie" };
