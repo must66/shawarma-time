@@ -152,47 +152,6 @@ export async function uploadFirebaseImage(file, folder = "menu") {
   return payload.secure_url;
 }
 
-export async function createFirebaseOrder(order) {
-  const firebase = await getFirebase();
-  if (!firebase) {
-    throw new Error(CONFIG_ERROR);
-  }
-  const cleanOrder = normalizeOrder(order);
-  const ref = firebase.firestoreMod.doc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION));
-  const orderNumber = formatOrderNumber(ref.id);
-  const payload = {
-    ...cleanOrder,
-    orderNumber,
-    status: "pending",
-    orderStatus: "pending",
-    createdAt: firebase.firestoreMod.serverTimestamp(),
-    updatedAt: firebase.firestoreMod.serverTimestamp()
-  };
-  console.info("[OrderFlow] Firestore write started", {
-    collection: ORDERS_COLLECTION,
-    documentId: ref.id,
-    orderNumber,
-    itemCount: payload.itemCount,
-    paymentMethod: payload.paymentMethod
-  });
-  try {
-    await firebase.firestoreMod.setDoc(ref, payload);
-    console.info("[OrderFlow] Firestore write success", {
-      collection: ORDERS_COLLECTION,
-      documentId: ref.id,
-      orderNumber
-    });
-  } catch (error) {
-    console.error("[OrderFlow] Firestore write failed", {
-      collection: ORDERS_COLLECTION,
-      documentId: ref.id,
-      message: error?.message || String(error)
-    });
-    throw error;
-  }
-  return { id: ref.id, orderNumber };
-}
-
 export async function findFirebaseOrderByNumber(orderNumber) {
   const firebase = await getFirebase();
   if (!firebase) return null;
@@ -325,40 +284,6 @@ function validateImage(file) {
   if (file.size > MAX_IMAGE_SIZE) throw new Error("Image is too large. Maximum size is 5MB.");
 }
 
-function normalizeOrder(order) {
-  const items = Array.isArray(order?.items) ? order.items.slice(0, 40).map((item) => ({
-    id: String(item.id || "").slice(0, 120),
-    name: String(item.name || "").slice(0, 180),
-    price: String(item.price || "").slice(0, 40),
-    priceValue: Number(item.priceValue || 0),
-    quantity: Math.max(1, Math.min(99, Number(item.quantity || 1))),
-    image: String(item.image || "").slice(0, 1000)
-  })) : [];
-  if (!items.length) throw new Error("Order cart is empty.");
-  const customer = {
-    name: String(order?.customer?.name || "").trim().slice(0, 120),
-    phone: String(order?.customer?.phone || "").trim().slice(0, 80),
-    email: String(order?.customer?.email || "").trim().slice(0, 160),
-    address: String(order?.customer?.address || "").trim().slice(0, 240),
-    fulfillment: ["pickup", "delivery"].includes(order?.customer?.fulfillment) ? order.customer.fulfillment : "pickup",
-    preferredTime: String(order?.customer?.preferredTime || "").trim().slice(0, 40),
-    notes: String(order?.customer?.notes || "").trim().slice(0, 600)
-  };
-  if (!customer.name || !customer.phone) throw new Error("Customer name and phone are required.");
-  const subtotal = items.reduce((sum, item) => sum + item.priceValue * item.quantity, 0);
-  const paymentMethod = ["cash", "restaurant", "stripe", "mollie"].includes(order?.paymentMethod) ? order.paymentMethod : "cash";
-  return {
-    customer,
-    items,
-    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-    subtotal: Number(subtotal.toFixed(2)),
-    currency: "EUR",
-    paymentMethod,
-    paymentStatus: paymentMethod === "stripe" || paymentMethod === "mollie" ? "pending" : "unpaid",
-    source: "website"
-  };
-}
-
 function normalizeStatusForWrite(status) {
   const aliases = {
     new: "pending",
@@ -367,10 +292,6 @@ function normalizeStatusForWrite(status) {
     completed: "delivered"
   };
   return aliases[status] || status;
-}
-
-function formatOrderNumber(value) {
-  return `ST-${String(value || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
 function authErrorMessage(error) {

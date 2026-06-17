@@ -41,7 +41,7 @@ function plainTextOrder(orderId, order) {
     `Order ID: ${orderId}`,
     `Name: ${order.customer?.name || ""}`,
     `Phone: ${order.customer?.phone || ""}`,
-    `Payment: ${order.paymentMethod || "cash"}`,
+    `Payment: ${order.paymentMethod || "online card"}`,
     `Total: ${formatTotal(order.subtotal)}`,
     `Notes: ${order.customer?.notes || "-"}`,
     "",
@@ -58,7 +58,7 @@ function htmlOrder(orderId, order) {
       <p><strong>Order ID:</strong> ${escapeHtml(orderId)}</p>
       <p><strong>Name:</strong> ${escapeHtml(order.customer?.name || "")}</p>
       <p><strong>Phone:</strong> ${escapeHtml(order.customer?.phone || "")}</p>
-      <p><strong>Payment:</strong> ${escapeHtml(order.paymentMethod || "cash")}</p>
+      <p><strong>Payment:</strong> ${escapeHtml(order.paymentMethod || "online card")}</p>
       <p><strong>Total:</strong> ${escapeHtml(formatTotal(order.subtotal))}</p>
       <p><strong>Notes:</strong> ${escapeHtml(order.customer?.notes || "-")}</p>
       <h3>Items</h3>

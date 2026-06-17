@@ -143,17 +143,9 @@
               <fieldset class="payment-methods checkout-payments">
                 <legend id="checkoutPaymentMethodLabel">Betaalmethode</legend>
                 <label id="molliePaymentOption">
-                  <input type="radio" name="paymentMethod" value="mollie" />
-                  <span id="checkoutMollieLabel">iDEAL online betalen</span>
-                  <small id="checkoutMollieNote">iDEAL, Apple Pay, Google Pay en kaart via Mollie</small>
-                </label>
-                <label class="payment-primary">
-                  <input type="radio" name="paymentMethod" value="cash" checked />
-                  <span id="checkoutCashLabel">Contant bij bezorging</span>
-                </label>
-                <label>
-                  <input type="radio" name="paymentMethod" value="restaurant" />
-                  <span id="checkoutRestaurantLabel">Betalen in restaurant</span>
+                  <input type="radio" name="paymentMethod" value="mollie" checked />
+                  <span id="checkoutMollieLabel">Online met kaart betalen</span>
+                  <small id="checkoutMollieNote">Creditcard of debitcard via Mollie</small>
                 </label>
               </fieldset>
               <button class="btn primary checkout-submit" id="submitOrderBtn" type="submit">Bestelling versturen</button>
@@ -301,9 +293,9 @@
     <footer class="site-footer">
       <strong>Shawarma Time</strong>
       <span id="footerAddress"></span>
-      <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen.</span>
+      <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, met kaart betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260617-order-write-fix"></script>
+    <script type="module" src="src/app.js?v=20260617-card-only-orders"></script>
   </body>
 </html>

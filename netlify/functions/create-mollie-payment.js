@@ -17,7 +17,7 @@ export async function handler(event) {
     return json(405, { error: "Method not allowed." });
   }
   if (!process.env.MOLLIE_API_KEY || !process.env.FIREBASE_SERVICE_ACCOUNT) {
-    return json(500, { error: "Online payment is temporarily unavailable. Please choose cash or pay at restaurant." });
+    return json(500, { error: "Online card payment is temporarily unavailable. Please call the restaurant." });
   }
 
   try {
@@ -33,16 +33,13 @@ export async function handler(event) {
     });
 
     const baseUrl = process.env.URL || process.env.DEPLOY_PRIME_URL || new URL(payload.redirectUrl).origin;
-    const methodFilter = (process.env.MOLLIE_PAYMENT_METHODS || "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean);
     const paymentBody = {
       description: `Shawarma Time order ${checkoutRef.id.slice(0, 8).toUpperCase()}`,
       amount: {
         currency: "EUR",
         value: order.subtotal.toFixed(2)
       },
+      method: ["creditcard"],
       redirectUrl: payload.redirectUrl,
       cancelUrl: payload.cancelUrl,
       webhookUrl: `${baseUrl.replace(/\/$/, "")}/.netlify/functions/mollie-webhook`,
@@ -52,7 +49,6 @@ export async function handler(event) {
         source: "shawarma-time"
       }
     };
-    if (methodFilter.length) paymentBody.method = methodFilter;
     const payment = await mollie("/payments", paymentBody);
 
     await checkoutRef.set({ molliePaymentId: payment.id }, { merge: true });
@@ -63,7 +59,7 @@ export async function handler(event) {
       orderNumber
     });
   } catch {
-    return json(500, { error: "Online payment is temporarily unavailable. Please choose cash or pay at restaurant." });
+    return json(500, { error: "Online card payment is temporarily unavailable. Please call the restaurant." });
   }
 }
 

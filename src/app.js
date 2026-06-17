@@ -1,7 +1,7 @@
 import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-order-write-fix";
-import { paymentConfig } from "./paymentConfig.js?v=20260617-order-write-fix";
+import { subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-card-only-orders";
+import { paymentConfig } from "./paymentConfig.js?v=20260617-card-only-orders";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
 let activeCategory = "all";
@@ -46,7 +46,7 @@ const orderingUi = {
       offer: "Special Offer"
     },
     sectionText: {
-      footer: "Shawarma Time Venlo. Online bestellen, iDEAL betalen en snel afhalen."
+      footer: "Shawarma Time Venlo. Online bestellen, met kaart betalen en snel afhalen."
     },
     section: {
       addedToCart: "is toegevoegd aan je winkelwagen.",
@@ -58,8 +58,8 @@ const orderingUi = {
       yourOrder: "Jouw bestelling",
       addMore: "Meer toevoegen",
       goToCheckout: "Naar checkout",
-      idealPayment: "iDEAL online betalen",
-      mollieWallets: "iDEAL, Apple Pay, Google Pay en kaart via Mollie",
+      idealPayment: "Online met kaart betalen",
+      mollieWallets: "Creditcard of debitcard via Mollie",
       customerEmail: "E-mail",
       customerAddress: "Adres",
       preferredTime: "Gewenste tijd",
@@ -119,7 +119,7 @@ const orderingUi = {
       offer: "عرض خاص"
     },
     sectionText: {
-      footer: "شاورما تايم فينلو. اطلب أونلاين وادفع عبر iDEAL واستلم بسرعة."
+      footer: "شاورما تايم فينلو. اطلب أونلاين وادفع بالبطاقة واستلم بسرعة."
     },
     section: {
       addedToCart: "تمت إضافته إلى سلة الطلب.",
@@ -131,8 +131,8 @@ const orderingUi = {
       yourOrder: "طلبك",
       addMore: "أضف المزيد",
       goToCheckout: "إلى الدفع",
-      idealPayment: "الدفع أونلاين عبر iDEAL",
-      mollieWallets: "iDEAL و Apple Pay و Google Pay والبطاقة عبر Mollie",
+      idealPayment: "الدفع أونلاين بالبطاقة",
+      mollieWallets: "بطاقة ائتمان أو بطاقة خصم عبر Mollie",
       customerEmail: "البريد الإلكتروني",
       customerAddress: "العنوان",
       preferredTime: "الوقت المفضل",
@@ -192,7 +192,7 @@ const orderingUi = {
       offer: "Sonderangebot"
     },
     sectionText: {
-      footer: "Shawarma Time Venlo. Online bestellen, mit iDEAL bezahlen und schnell abholen."
+      footer: "Shawarma Time Venlo. Online bestellen, mit Karte bezahlen und schnell abholen."
     },
     section: {
       addedToCart: "wurde in den Warenkorb gelegt.",
@@ -204,8 +204,8 @@ const orderingUi = {
       yourOrder: "Deine Bestellung",
       addMore: "Mehr hinzufuegen",
       goToCheckout: "Zum Checkout",
-      idealPayment: "Online mit iDEAL bezahlen",
-      mollieWallets: "iDEAL, Apple Pay, Google Pay und Karte via Mollie",
+      idealPayment: "Online mit Karte bezahlen",
+      mollieWallets: "Kreditkarte oder Debitkarte via Mollie",
       customerEmail: "E-Mail",
       customerAddress: "Adresse",
       preferredTime: "Gewuenschte Zeit",
@@ -290,7 +290,7 @@ const orderingUi = {
     },
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
     sectionText: {
-      footer: "Shawarma Time Venlo. Order online, pay with iDEAL and pick up fast."
+      footer: "Shawarma Time Venlo. Order online, pay by card and pick up fast."
     },
     section: {
       whatsapp: "WhatsApp",
@@ -319,16 +319,16 @@ const orderingUi = {
       delivery: "Delivery",
       orderNotes: "Notes",
       paymentMethod: "Payment method",
-      idealPayment: "Pay online with iDEAL",
-      mollieWallets: "iDEAL, Apple Pay, Google Pay and card via Mollie",
-      cashOnDelivery: "Cash",
-      payAtRestaurant: "Pay at restaurant",
+      idealPayment: "Pay online by card",
+      mollieWallets: "Credit card or debit card via Mollie",
+      cashOnDelivery: "Online payment only",
+      payAtRestaurant: "Online payment only",
       submitOrder: "Submit order",
       orderSuccess: "Thank you. Your order has been received.",
-      mollieRedirect: "You will be redirected to Mollie for secure payment.",
-      mollieUnavailable: "Online payment is temporarily unavailable. Choose cash or pay at restaurant.",
-      mollieMissingBackend: "Online payment is temporarily unavailable. Choose cash or pay at restaurant.",
-      mollieMissingConfig: "Online payment is temporarily unavailable. Choose cash or pay at restaurant.",
+      mollieRedirect: "You will be redirected to Mollie for secure card payment.",
+      mollieUnavailable: "Online card payment is temporarily unavailable. Please call the restaurant.",
+      mollieMissingBackend: "Online card payment is temporarily unavailable. Please call the restaurant.",
+      mollieMissingConfig: "Online card payment is temporarily unavailable. Please call the restaurant.",
       paymentSuccess: "Payment received. Your order has been sent.",
       paymentCancel: "Online payment was cancelled. You can try again or choose another payment method.",
       orderError: "Could not send order.",
@@ -401,22 +401,22 @@ const serviceInfo = {
   nl: [
     ["Afhalen", "Bestel online en haal je maaltijd warm op in Venlo."],
     ["Bezorgen", "Vul je adres in bij checkout en wij bevestigen de mogelijkheden."],
-    ["Veilig betalen", "Betaal met iDEAL via Mollie of kies contant/betalen in restaurant."]
+    ["Veilig betalen", "Betaal online met creditcard of debitcard via Mollie."]
   ],
   ar: [
     ["استلام", "اطلب أونلاين واستلم وجبتك ساخنة في فينلو."],
     ["توصيل", "أدخل عنوانك عند الدفع وسنؤكد إمكانية التوصيل."],
-    ["دفع آمن", "ادفع عبر iDEAL من Mollie أو اختر الدفع نقداً / في المطعم."]
+    ["دفع آمن", "ادفع أونلاين ببطاقة ائتمان أو خصم عبر Mollie."]
   ],
   de: [
     ["Abholen", "Online bestellen und dein Essen warm in Venlo abholen."],
     ["Lieferung", "Adresse im Checkout eingeben, wir bestaetigen die Moeglichkeiten."],
-    ["Sicher bezahlen", "Mit iDEAL via Mollie bezahlen oder Bar/Restaurant waehlen."]
+    ["Sicher bezahlen", "Online mit Kreditkarte oder Debitkarte via Mollie bezahlen."]
   ],
   en: [
     ["Pickup", "Order online and pick up your meal hot in Venlo."],
     ["Delivery", "Enter your address at checkout and we will confirm availability."],
-    ["Secure payment", "Pay with iDEAL via Mollie or choose cash/pay at restaurant."]
+    ["Secure payment", "Pay online by credit or debit card via Mollie."]
   ]
 };
 
@@ -930,8 +930,6 @@ function renderCheckout() {
   $("#checkoutPaymentMethodLabel").textContent = t("section.paymentMethod");
   $("#checkoutMollieLabel").textContent = t("section.idealPayment");
   $("#checkoutMollieNote").textContent = t("section.mollieWallets");
-  $("#checkoutCashLabel").textContent = t("section.cashOnDelivery");
-  $("#checkoutRestaurantLabel").textContent = t("section.payAtRestaurant");
   syncPaymentAvailability();
   $("#submitOrderBtn").textContent = t("section.submitOrder");
   $("#checkoutSubtotalLabel").textContent = t("section.subtotal");
@@ -954,16 +952,12 @@ function syncPaymentAvailability() {
   const mollieOption = $("#molliePaymentOption") || mollieInput?.closest("label");
   const onlineAvailable = Boolean(paymentConfig.molliePaymentEndpoint);
   if (mollieInput) mollieInput.disabled = !onlineAvailable;
-  if (mollieOption) mollieOption.hidden = !onlineAvailable;
-  if (!onlineAvailable && mollieInput?.checked) {
-    const cashInput = document.querySelector('input[name="paymentMethod"][value="cash"]');
-    if (cashInput) cashInput.checked = true;
-  }
+  if (mollieOption) mollieOption.classList.toggle("disabled", !onlineAvailable);
+  if ($("#submitOrderBtn")) $("#submitOrderBtn").disabled = !onlineAvailable;
 }
 
 function normalizePaymentMethod(value) {
-  if (value === "mollie" && !paymentConfig.molliePaymentEndpoint) return "cash";
-  return ["cash", "restaurant", "mollie"].includes(value) ? value : "cash";
+  return value === "mollie" ? "mollie" : "mollie";
 }
 
 function euro(value) {
@@ -1031,20 +1025,8 @@ async function submitCart(event) {
       fulfillment: orderPayload.customer.fulfillment,
       customerPhone: orderPayload.customer.phone
     });
-    if (paymentMethod === "mollie") {
-      setStatus(t("section.mollieRedirect"), false);
-      await redirectToMolliePayment(orderPayload);
-      return;
-    }
-    const total = cartTotal();
-    orderLog("Firestore write requested from checkout", { total, collection: "orders" });
-    const savedOrder = await createFirebaseOrder(orderPayload);
-    orderLog("Firestore write returned to checkout", savedOrder);
-    notifyOrderCreated(savedOrder.id, orderPayload, total);
-    showOrderSuccess(savedOrder, total, paymentMethod, orderPayload);
-    cart = [];
-    cartForm.reset();
-    renderCart();
+    setStatus(t("section.mollieRedirect"), false);
+    await redirectToMolliePayment(orderPayload);
   } catch (error) {
     orderLog("Order submission failed", { message: error?.message || String(error) });
     setStatus(customerSafeErrorMessage(error, paymentMethod), true);
@@ -1226,51 +1208,6 @@ function formatOrderNumber(orderId) {
   return `ST-${String(orderId || Date.now()).replace(/[^a-z0-9]/gi, "").slice(0, 6).toUpperCase()}`;
 }
 
-async function notifyOrderCreated(orderId, orderPayload, total = cartTotal()) {
-  const endpoint = paymentConfig.orderNotificationEndpoint;
-  if (!endpoint) return;
-  try {
-    await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        orderId,
-        order: {
-          ...orderPayload,
-          subtotal: total,
-          currency: "EUR"
-        }
-      })
-    });
-  } catch {
-    // Notification failures must not interrupt or expose technical details to customers.
-  }
-}
-
-async function redirectToStripeCheckout(orderPayload) {
-  const endpoint = paymentConfig.stripeCheckoutEndpoint;
-  if (!endpoint) throw new Error(t("section.stripeUnavailable"));
-  await assertStripeReady();
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      order: {
-        ...orderPayload,
-        subtotal: cartTotal(),
-        currency: "EUR"
-      },
-      successUrl: new URL("payment-success.html", window.location.href).toString(),
-      cancelUrl: `${window.location.origin}${window.location.pathname}?payment=cancel`
-    })
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || !payload.url) {
-    throw new Error(payload.error || t("section.stripeUnavailable"));
-  }
-  window.location.href = payload.url;
-}
-
 async function redirectToMolliePayment(orderPayload) {
   const endpoint = paymentConfig.molliePaymentEndpoint;
   if (!endpoint) throw new Error(t("section.mollieUnavailable"));
@@ -1325,22 +1262,6 @@ async function assertMollieReady() {
   const status = await response.json().catch(() => null);
   if (!status?.mollieApiKey || !status?.firebaseServiceAccount) {
     throw new Error(t("section.mollieMissingConfig"));
-  }
-}
-
-async function assertStripeReady() {
-  const endpoint = paymentConfig.stripeConfigStatusEndpoint;
-  if (!endpoint) return;
-  let response;
-  try {
-    response = await fetch(endpoint, { headers: { accept: "application/json" } });
-  } catch {
-    throw new Error(t("section.stripeMissingBackend"));
-  }
-  if (!response.ok) throw new Error(t("section.stripeMissingBackend"));
-  const status = await response.json().catch(() => null);
-  if (!status?.stripeSecretKey || !status?.stripePublishableKey || !status?.stripeWebhookSecret || !status?.firebaseServiceAccount) {
-    throw new Error(t("section.stripeMissingConfig"));
   }
 }
 
