@@ -3,6 +3,10 @@ import { dirname, join } from "node:path";
 
 const files = [
   "404.html",
+  "favicon.ico",
+  "favicon.svg",
+  "favicon-32x32.png",
+  "favicon-192x192.png",
   "robots.txt",
   "sitemap.xml",
   ".nojekyll"
