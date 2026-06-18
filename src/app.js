@@ -628,16 +628,18 @@ function renderBadge(badge) {
 }
 
 function itemCard(item) {
+  const name = localized(item.name, lang);
+  const description = localized(item.desc, lang) || menuDescriptionPlaceholder();
   return `
-    <article class="food-card" data-product-open="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(localized(item.name, lang))}">
+    <article class="food-card" data-product-open="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(name)}">
       <div class="food-image">
-        <img src="${item.image}" alt="${localized(item.name, lang)}" loading="lazy" decoding="async" />
+        <img src="${item.image}" alt="${name}" loading="lazy" decoding="async" />
         ${renderBadge(item.badge)}
       </div>
       <div>
         <span>${t(`categories.${item.category}`)}</span>
-        <h3>${localized(item.name, lang)}</h3>
-        <p>${localized(item.desc, lang)}</p>
+        <h3>${name}</h3>
+        <p>${description}</p>
         <div class="food-card-bottom">
           <strong>${item.price}</strong>
           <button class="btn tiny add-button" type="button" data-add-cart="${encodeAttr(item.id)}" aria-label="${encodeAttr(t("section.addToBasket"))}">+</button>
@@ -648,9 +650,31 @@ function itemCard(item) {
 }
 
 function renderMenu() {
-  const availableItems = data.menu.filter((item) => item.available !== false);
-  const items = activeCategory === "all" ? availableItems : availableItems.filter((item) => item.category === activeCategory);
-  $("#menuGrid").innerHTML = items.map(itemCard).join("");
+  const availableItems = data.menu.filter(isDisplayableMenuItem);
+  const root = $("#menuGrid");
+  if (activeCategory === "all") {
+    root.classList.add("grouped");
+    const groupedHtml = normalizeCategoryOrder().map((category) => {
+      const categoryItems = availableItems.filter((item) => item.category === category);
+      if (!categoryItems.length) return "";
+      return `
+        <section class="menu-category-section" data-menu-category="${category}">
+          <header class="menu-category-head">
+            <span>${t(`categories.${category}`)}</span>
+            <b>${categoryItems.length}</b>
+          </header>
+          <div class="menu-category-grid">
+            ${categoryItems.map(itemCard).join("")}
+          </div>
+        </section>
+      `;
+    }).join("");
+    root.innerHTML = groupedHtml || `<p class="menu-empty">${menuEmptyText()}</p>`;
+  } else {
+    root.classList.remove("grouped");
+    const items = availableItems.filter((item) => item.category === activeCategory);
+    root.innerHTML = items.length ? items.map(itemCard).join("") : `<p class="menu-empty">${menuEmptyText()}</p>`;
+  }
   $("#menuGrid").querySelectorAll("[data-add-cart]").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -665,6 +689,32 @@ function renderMenu() {
       openProductModal(card.dataset.productOpen);
     });
   });
+}
+
+function isDisplayableMenuItem(item) {
+  if (!item || item.available === false) return false;
+  if (!localized(item.name, lang).trim()) return false;
+  const value = priceNumber(item.price);
+  const isFree = item.free === true || item.isFree === true || item.priceIntent === "free";
+  return Number.isFinite(value) && (value > 0 || isFree);
+}
+
+function menuDescriptionPlaceholder() {
+  return {
+    nl: "Vers bereid door Shawarma Time.",
+    ar: "يحضر طازجا لدى شاورما تايم.",
+    de: "Frisch zubereitet von Shawarma Time.",
+    en: "Freshly prepared by Shawarma Time."
+  }[lang] || "Freshly prepared by Shawarma Time.";
+}
+
+function menuEmptyText() {
+  return {
+    nl: "Geen geldige menu-items beschikbaar.",
+    ar: "لا توجد عناصر قائمة صالحة حاليا.",
+    de: "Keine gueltigen Menuepunkte verfuegbar.",
+    en: "No valid menu items available."
+  }[lang] || "No valid menu items available.";
 }
 
 function renderOffers() {

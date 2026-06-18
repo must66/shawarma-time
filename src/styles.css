@@ -537,6 +537,53 @@ h1 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
+.menu-grid.grouped {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 4vw, 38px);
+}
+.menu-category-section {
+  display: grid;
+  gap: 16px;
+}
+.menu-category-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-block: 4px 8px;
+  border-bottom: 1px solid rgba(255,191,88,.18);
+}
+.menu-category-head span {
+  color: #fff7e8;
+  font-size: clamp(1.22rem, 2vw, 1.65rem);
+  font-weight: 950;
+}
+.menu-category-head b {
+  min-width: 34px;
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(255,191,88,.22);
+  border-radius: 999px;
+  color: var(--gold);
+  background: rgba(255,191,88,.08);
+  font-size: .88rem;
+}
+.menu-category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.menu-empty {
+  margin: 0;
+  grid-column: 1 / -1;
+  border: 1px solid rgba(255,191,88,.14);
+  border-radius: 14px;
+  padding: 18px;
+  color: var(--muted);
+  background: rgba(255,255,255,.035);
+}
 .featured-section {
   background:
     radial-gradient(circle at 14% 12%, rgba(255,191,88,.14), transparent 30%),
@@ -1839,7 +1886,7 @@ body.no-animations .btn {
   }
   .hero-logo { margin-bottom: 18px; }
   .section-head { display: block; }
-  .banner-strip, .menu-grid, .offer-grid, .review-grid, .featured-grid, .gallery-grid, .social-grid, .service-strip { grid-template-columns: 1fr; }
+  .banner-strip, .menu-grid, .offer-grid, .review-grid, .featured-grid, .gallery-grid, .social-grid, .service-strip, .menu-category-grid { grid-template-columns: 1fr; }
   .gallery-grid figure:first-child { grid-row: auto; }
   .gallery-grid figure:first-child img, .food-card img, .offer-card img, .gallery-grid img { height: 270px; }
   .ad-banner { min-height: 190px; }
@@ -1848,6 +1895,15 @@ body.no-animations .btn {
   .food-card h3 { font-size: 1.35rem; }
   .food-card-bottom { align-items: stretch; }
   .food-card-bottom .btn { flex: 0 0 auto; }
+  .menu-grid.grouped {
+    gap: 30px;
+  }
+  .menu-category-section {
+    gap: 14px;
+  }
+  .menu-category-head {
+    align-items: flex-end;
+  }
   .form-row, .success-details, .fulfillment-methods, .track-form, .track-steps { grid-template-columns: 1fr; }
   .track-summary {
     grid-template-columns: 1fr;
