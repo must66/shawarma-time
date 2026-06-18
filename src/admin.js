@@ -562,7 +562,7 @@ function addItem(collection) {
   const id = `${collection}-${Date.now()}`;
   const baseImage = data.menu[0]?.image || data.homepage.heroImage;
   const item = {
-    menu: { id, category: "shawarma", badge: "", price: "€0,00", name: blank(), desc: blank(), image: baseImage },
+    menu: { id, category: "sandwiches", badge: "", price: "€0,00", name: blank(), desc: blank(), image: baseImage },
     offers: { id, type: "daily", price: "€0,00", name: blank(), desc: blank(), image: baseImage },
     banners: { id, title: blank(), text: blank(), image: baseImage },
     gallery: { id, type: "food", title: blank(), image: baseImage },

@@ -1,4 +1,4 @@
-import { badgeOptions, categoryOrder, defaultSiteData, loadSiteData, saveSiteData, ui } from "./data.js";
+import { badgeOptions, defaultSiteData, loadSiteData, normalizeCategoryOrder, saveSiteData, ui } from "./data.js";
 import {
   isFirebaseConfigured,
   loadFirebaseSiteData,
@@ -9,7 +9,7 @@ import {
   subscribeFirebaseOrders,
   updateFirebaseOrderStatus,
   uploadFirebaseImage
-} from "./firebaseService.js?v=20260618-admin-listener-audit";
+} from "./firebaseService.js?v=20260618-fixed-category-order";
 
 const $ = (selector) => document.querySelector(selector);
 const langs = ["nl", "ar", "de", "en"];
@@ -583,8 +583,7 @@ $("#saveHoursBtn").addEventListener("click", () => {
 });
 
 $("#addCategoryBtn")?.addEventListener("click", () => {
-  siteData.categoryOrder ||= [...categoryOrder];
-  siteData.categoryOrder.push(`category-${Date.now()}`);
+  siteData.categoryOrder = normalizeCategoryOrder();
   renderCategoriesAdmin();
 });
 
@@ -1138,7 +1137,7 @@ function renderHours() {
 function renderCategoriesAdmin() {
   const root = $("#categoriesEditor");
   if (!root) return;
-  siteData.categoryOrder ||= [...categoryOrder];
+  siteData.categoryOrder = normalizeCategoryOrder();
   siteData.categoryLabels ||= {};
   root.innerHTML = siteData.categoryOrder.map((slug, index) => `
     <article class="admin-card editor-card category-editor" data-index="${index}">
@@ -1161,9 +1160,9 @@ function renderCategoriesAdmin() {
       const slug = normalizeCategorySlug(card.querySelector("[data-category-slug]").value);
       if (!slug) return;
       const oldSlug = siteData.categoryOrder[index];
-      siteData.categoryOrder[index] = slug;
+      siteData.categoryOrder = normalizeCategoryOrder();
       if (oldSlug && oldSlug !== slug) delete siteData.categoryLabels[oldSlug];
-      siteData.categoryLabels[slug] = {
+      siteData.categoryLabels[oldSlug] = {
         nl: card.querySelector('[data-category-name="nl"]').value || slug,
         ar: card.querySelector('[data-category-name="ar"]').value || slug,
         de: card.querySelector('[data-category-name="de"]').value || slug
@@ -1173,8 +1172,7 @@ function renderCategoriesAdmin() {
   });
   root.querySelectorAll("[data-delete-category]").forEach((button) => {
     button.addEventListener("click", async () => {
-      const index = Number(button.closest(".category-editor").dataset.index);
-      siteData.categoryOrder.splice(index, 1);
+      siteData.categoryOrder = normalizeCategoryOrder();
       await saveContent(tr("deleted"));
     });
   });
@@ -1299,7 +1297,7 @@ function uploadLabel(label, attribute) {
 }
 
 function categorySelect(item) {
-  const categories = siteData.categoryOrder?.length ? siteData.categoryOrder : categoryOrder;
+  const categories = normalizeCategoryOrder();
   return `<label><span>${tr("category")}</span><select data-field="category">${categories.map((cat) => `<option value="${cat}" ${item.category === cat ? "selected" : ""}>${categoryLabelAdmin(cat)}</option>`).join("")}</select></label>`;
 }
 
@@ -1365,7 +1363,7 @@ function blankItem(collection) {
   const baseImage = siteData.homepage.heroImage;
   const blank = { nl: "", ar: "", de: "", en: "" };
   return {
-    menu: { id, category: "shawarma", badge: "", price: "EUR 0,00", available: true, name: { ...blank }, desc: { ...blank }, image: baseImage },
+    menu: { id, category: "sandwiches", badge: "", price: "EUR 0,00", available: true, name: { ...blank }, desc: { ...blank }, image: baseImage },
     offers: { id, type: "daily", price: "EUR 0,00", name: { ...blank }, desc: { ...blank }, image: baseImage },
     banners: { id, title: { ...blank }, text: { ...blank }, image: baseImage },
     gallery: { id, type: "food", title: { ...blank }, image: baseImage },

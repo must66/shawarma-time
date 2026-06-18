@@ -1,11 +1,11 @@
-import { categoryOrder, defaultSiteData, localized } from "./data.js";
+import { categoryOrder, defaultSiteData, localized, normalizeCategoryOrder, normalizeCategorySlug, normalizeSiteDataCategories } from "./data.js";
 import { isFirebaseConfigured, loadFirebaseSiteData, subscribeFirebaseSiteData } from "./firebaseService.js?v=20260616-platform-stable";
 import { getSupabase } from "./supabaseService.js";
 
 export async function fetchPublicSiteData() {
   if (isFirebaseConfigured()) return loadFirebaseSiteData();
   const supabase = await getSupabase();
-  if (!supabase) return structuredClone(defaultSiteData);
+  if (!supabase) return normalizeSiteDataCategories(defaultSiteData);
 
   const [
     categories,
@@ -82,7 +82,7 @@ function normalizePublicData(rows) {
   const homepage = rows.homepage;
   const contact = rows.contact;
 
-  return {
+  return normalizeSiteDataCategories({
     ...fallback,
     homepage: homepage ? {
       ...fallback.homepage,
@@ -125,7 +125,7 @@ function normalizePublicData(rows) {
     })) : fallback.banners,
     menu: rows.menuItems.length ? rows.menuItems.map((item) => ({
       id: item.id,
-      category: item.menu_categories?.slug || categoriesById.get(item.category_id) || categoryOrder[0],
+      category: normalizeCategorySlug(item.menu_categories?.slug || categoriesById.get(item.category_id) || categoryOrder[0]),
       price: formatPrice(item.price, item.currency),
       badge: item.badge || "",
       name: multilingual(item, "name"),
@@ -146,8 +146,8 @@ function normalizePublicData(rows) {
       title: multilingual(image, "title"),
       image: image.image_url
     })) : fallback.gallery,
-    categoryOrder: categorySlugs.length ? categorySlugs : categoryOrder
-  };
+    categoryOrder: normalizeCategoryOrder(categorySlugs)
+  });
 }
 
 function multilingual(row, prefix) {

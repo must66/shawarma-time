@@ -1,4 +1,4 @@
-import { categoryOrder, loadSiteData, localized, ui } from "./data.js";
+import { loadSiteData, localized, normalizeCategoryOrder, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
 import { subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-card-only-orders";
 import { paymentConfig } from "./paymentConfig.js?v=20260617-card-only-orders";
@@ -272,6 +272,7 @@ const orderingUi = {
       shawarma: "Shawarma",
       sandwiches: "Sandwiches",
       meals: "Meals",
+      appetizers: "Appetizers",
       grilledChicken: "Grilled chicken",
       broastedChicken: "Broasted chicken",
       crispyChicken: "Crispy chicken",
@@ -606,7 +607,7 @@ function renderServiceStrip() {
 }
 
 function renderCategories() {
-  const categories = ["all", ...(data.categoryOrder || categoryOrder)];
+  const categories = ["all", ...normalizeCategoryOrder()];
   $("#categoryTabs").innerHTML = categories.map((category) => `
     <button type="button" class="${activeCategory === category ? "active" : ""}" data-category="${category}">
       ${t(`categories.${category}`)}

@@ -1,19 +1,23 @@
 export const languages = ["ar", "nl", "de", "en"];
 
 export const categoryOrder = [
-  "shawarma",
   "sandwiches",
   "meals",
-  "grilledChicken",
-  "broastedChicken",
-  "crispyChicken",
-  "kapsalon",
-  "falafel",
-  "sides",
-  "drinks",
-  "sauces",
-  "salads"
+  "appetizers",
+  "salads",
+  "drinks"
 ];
+
+const categoryAliases = {
+  sides: "appetizers",
+  sauces: "appetizers",
+  falafel: "sandwiches",
+  shawarma: "sandwiches",
+  kapsalon: "meals",
+  grilledChicken: "meals",
+  broastedChicken: "meals",
+  crispyChicken: "sandwiches"
+};
 
 export const badgeOptions = ["", "new", "popular", "spicy", "offer"];
 
@@ -33,6 +37,7 @@ export const ui = {
       shawarma: "Shawarma",
       sandwiches: "Sandwiches",
       meals: "Maaltijden",
+      appetizers: "Voorgerechten",
       grilledChicken: "Gegrilde kip",
       broastedChicken: "Broasted chicken",
       crispyChicken: "Crispy chicken",
@@ -207,6 +212,7 @@ export const ui = {
       shawarma: "Shawarma",
       sandwiches: "Sandwiches",
       meals: "Gerichte",
+      appetizers: "Vorspeisen",
       grilledChicken: "Gegrilltes Hähnchen",
       broastedChicken: "Broasted Chicken",
       crispyChicken: "Crispy Chicken",
@@ -452,14 +458,42 @@ export function localized(value, lang) {
 export function loadSiteData() {
   try {
     const stored = JSON.parse(localStorage.getItem(storageKey));
-    return stored ? mergeData(defaultSiteData, stored) : structuredClone(defaultSiteData);
+    return stored ? mergeData(defaultSiteData, stored) : normalizeSiteDataCategories(defaultSiteData);
   } catch {
-    return structuredClone(defaultSiteData);
+    return normalizeSiteDataCategories(defaultSiteData);
   }
 }
 
 export function saveSiteData(data) {
-  localStorage.setItem(storageKey, JSON.stringify(data));
+  localStorage.setItem(storageKey, JSON.stringify(normalizeSiteDataCategories(data)));
+}
+
+export function normalizeCategorySlug(category) {
+  const normalized = categoryAliases[category] || category;
+  return categoryOrder.includes(normalized) ? normalized : categoryOrder[0];
+}
+
+export function normalizeCategoryOrder() {
+  return [...categoryOrder];
+}
+
+export function normalizeSiteDataCategories(data) {
+  const normalized = structuredClone(data);
+  normalized.categoryOrder = normalizeCategoryOrder();
+  normalized.categoryLabels = {
+    ...(normalized.categoryLabels || {}),
+    appetizers: {
+      nl: normalized.categoryLabels?.appetizers?.nl || ui.nl.categories.appetizers,
+      ar: normalized.categoryLabels?.appetizers?.ar || "مقبلات",
+      de: normalized.categoryLabels?.appetizers?.de || ui.de.categories.appetizers,
+      en: normalized.categoryLabels?.appetizers?.en || "Appetizers"
+    }
+  };
+  normalized.menu = (normalized.menu || []).map((item) => ({
+    ...item,
+    category: normalizeCategorySlug(item.category)
+  }));
+  return normalized;
 }
 
 function mergeData(base, stored) {
@@ -468,5 +502,5 @@ function mergeData(base, stored) {
   merged.design = { ...base.design, ...stored.design };
   merged.homepage = { ...base.homepage, ...stored.homepage };
   merged.sectionText = { ...base.sectionText, ...stored.sectionText };
-  return merged;
+  return normalizeSiteDataCategories(merged);
 }

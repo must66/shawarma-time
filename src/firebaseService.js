@@ -1,4 +1,4 @@
-import { defaultSiteData, loadSiteData } from "./data.js";
+import { defaultSiteData, loadSiteData, normalizeSiteDataCategories } from "./data.js";
 import { firebaseConfig, firebaseEnabled } from "./firebaseConfig.js";
 import { cloudinaryConfig, cloudinaryEnabled } from "./cloudinaryConfig.js";
 
@@ -108,7 +108,7 @@ export async function loadFirebaseSiteData() {
   const ref = contentRef(firebase);
   const snap = await firebase.firestoreMod.getDoc(ref);
   if (!snap.exists()) {
-    return structuredClone(defaultSiteData);
+    return normalizeSiteDataCategories(defaultSiteData);
   }
   return mergeSiteData(defaultSiteData, snap.data().data || {});
 }
@@ -119,7 +119,7 @@ export async function saveFirebaseSiteData(siteData) {
     throw new Error(CONFIG_ERROR);
   }
   await firebase.firestoreMod.setDoc(contentRef(firebase), {
-    data: siteData,
+    data: normalizeSiteDataCategories(siteData),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   }, { merge: true });
 }
@@ -333,5 +333,5 @@ function mergeSiteData(base, stored) {
   merged.design = { ...base.design, ...stored.design };
   merged.homepage = { ...base.homepage, ...stored.homepage };
   merged.sectionText = { ...base.sectionText, ...stored.sectionText };
-  return merged;
+  return normalizeSiteDataCategories(merged);
 }
