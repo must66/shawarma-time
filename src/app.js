@@ -1,6 +1,6 @@
 import { loadSiteData, localized, normalizeCategoryOrder, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260617-card-only-orders";
+import { createFirebaseTestOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260623-test-cash-checkout";
 import { paymentConfig } from "./paymentConfig.js?v=20260617-card-only-orders";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
@@ -58,8 +58,8 @@ const orderingUi = {
       yourOrder: "Jouw bestelling",
       addMore: "Meer toevoegen",
       goToCheckout: "Naar checkout",
-      idealPayment: "Online met kaart betalen",
-      mollieWallets: "Creditcard of debitcard via Mollie",
+      idealPayment: "Cash / test checkout",
+      mollieWallets: "Tijdelijk: bestelling direct testen en betalen bij afhalen.",
       customerEmail: "E-mail",
       customerAddress: "Adres",
       preferredTime: "Gewenste tijd",
@@ -131,8 +131,8 @@ const orderingUi = {
       yourOrder: "طلبك",
       addMore: "أضف المزيد",
       goToCheckout: "إلى الدفع",
-      idealPayment: "الدفع أونلاين بالبطاقة",
-      mollieWallets: "بطاقة ائتمان أو بطاقة خصم عبر Mollie",
+      idealPayment: "Cash / test checkout",
+      mollieWallets: "Temporary: create the order now and pay at pickup.",
       customerEmail: "البريد الإلكتروني",
       customerAddress: "العنوان",
       preferredTime: "الوقت المفضل",
@@ -204,8 +204,8 @@ const orderingUi = {
       yourOrder: "Deine Bestellung",
       addMore: "Mehr hinzufuegen",
       goToCheckout: "Zum Checkout",
-      idealPayment: "Online mit Karte bezahlen",
-      mollieWallets: "Kreditkarte oder Debitkarte via Mollie",
+      idealPayment: "Cash / test checkout",
+      mollieWallets: "Voruebergehend: Bestellung direkt testen und bei Abholung bezahlen.",
       customerEmail: "E-Mail",
       customerAddress: "Adresse",
       preferredTime: "Gewuenschte Zeit",
@@ -320,8 +320,8 @@ const orderingUi = {
       delivery: "Delivery",
       orderNotes: "Notes",
       paymentMethod: "Payment method",
-      idealPayment: "Pay online by card",
-      mollieWallets: "Credit card or debit card via Mollie",
+      idealPayment: "Cash / test checkout",
+      mollieWallets: "Temporary: create the order now and pay at pickup.",
       cashOnDelivery: "Online payment only",
       payAtRestaurant: "Online payment only",
       submitOrder: "Submit order",
@@ -999,16 +999,19 @@ function renderCheckout() {
 }
 
 function syncPaymentAvailability() {
-  const mollieInput = document.querySelector('input[name="paymentMethod"][value="mollie"]');
+  const mollieInput = document.querySelector('input[name="paymentMethod"][value="cash"], input[name="paymentMethod"][value="mollie"]');
   const mollieOption = $("#molliePaymentOption") || mollieInput?.closest("label");
-  const onlineAvailable = Boolean(paymentConfig.molliePaymentEndpoint);
-  if (mollieInput) mollieInput.disabled = !onlineAvailable;
-  if (mollieOption) mollieOption.classList.toggle("disabled", !onlineAvailable);
-  if ($("#submitOrderBtn")) $("#submitOrderBtn").disabled = !onlineAvailable;
+  if (mollieInput) {
+    mollieInput.value = "cash";
+    mollieInput.disabled = false;
+    mollieInput.checked = true;
+  }
+  if (mollieOption) mollieOption.classList.remove("disabled");
+  if ($("#submitOrderBtn")) $("#submitOrderBtn").disabled = false;
 }
 
 function normalizePaymentMethod(value) {
-  return value === "mollie" ? "mollie" : "mollie";
+  return "cash";
 }
 
 function euro(value) {
@@ -1076,8 +1079,14 @@ async function submitCart(event) {
       fulfillment: orderPayload.customer.fulfillment,
       customerPhone: orderPayload.customer.phone
     });
-    setStatus(t("section.mollieRedirect"), false);
-    await redirectToMolliePayment(orderPayload);
+    setStatus(t("section.submitOrder"), false);
+    const savedOrder = await createFirebaseTestOrder({
+      ...orderPayload,
+      subtotal: cartTotal()
+    });
+    showOrderSuccess(savedOrder, cartTotal(), paymentMethod, orderPayload);
+    cart = [];
+    renderCart();
   } catch (error) {
     orderLog("Order submission failed", { message: error?.message || String(error) });
     setStatus(customerSafeErrorMessage(error, paymentMethod), true);
@@ -1095,11 +1104,11 @@ function showOrderSuccess(savedOrder, total, paymentMethod, orderPayload) {
     prepTime: t("section.defaultPrepTime"),
     total,
     paymentMethod,
-    paymentStatus: paymentMethod === "mollie" ? "paid" : "unpaid",
+    paymentStatus: savedOrder?.paymentStatus || "pending",
     customer: orderPayload.customer,
     items: orderPayload.items,
-    status: "pending",
-    orderStatus: "pending",
+    status: savedOrder?.status || "new",
+    orderStatus: savedOrder?.orderStatus || "new",
     createdAt: new Date().toISOString()
   };
   sessionStorage.setItem("shawarma-time-last-order", JSON.stringify(successData));

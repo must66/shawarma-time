@@ -170,6 +170,29 @@ export async function findFirebaseOrderByNumber(orderNumber) {
   return { id: doc.id, ...doc.data() };
 }
 
+export async function createFirebaseTestOrder(orderPayload) {
+  const firebase = await getFirebase();
+  if (!firebase) throw new Error(CONFIG_ERROR);
+  const orderNumber = formatTestOrderNumber();
+  const order = {
+    customer: sanitizeCustomer(orderPayload.customer),
+    items: (orderPayload.items || []).map(sanitizeOrderItem),
+    itemCount: (orderPayload.items || []).reduce((sum, item) => sum + Number(item.quantity || 1), 0),
+    subtotal: Number(Number(orderPayload.subtotal || 0).toFixed(2)),
+    currency: "EUR",
+    paymentMethod: "cash",
+    paymentStatus: "pending",
+    status: "new",
+    orderStatus: "new",
+    orderNumber,
+    source: "test-checkout",
+    createdAt: firebase.firestoreMod.serverTimestamp(),
+    updatedAt: firebase.firestoreMod.serverTimestamp()
+  };
+  const docRef = await firebase.firestoreMod.addDoc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION), order);
+  return { id: docRef.id, ...order, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+}
+
 export async function subscribeFirebaseOrderByNumber(orderNumber, callback, onError) {
   const firebase = await getFirebase();
   if (!firebase) return () => {};
@@ -314,6 +337,36 @@ function normalizeStatusForWrite(status) {
     delivered: "completed"
   };
   return aliases[status] || status;
+}
+
+function formatTestOrderNumber() {
+  const stamp = Date.now().toString(36).toUpperCase().slice(-5);
+  const random = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
+  return `ST-${stamp}${random}`;
+}
+
+function sanitizeCustomer(customer = {}) {
+  return {
+    name: String(customer.name || "").trim().slice(0, 120),
+    phone: String(customer.phone || "").trim().slice(0, 80),
+    email: String(customer.email || "").trim().slice(0, 160),
+    address: String(customer.address || "").trim().slice(0, 240),
+    fulfillment: ["pickup", "delivery"].includes(customer.fulfillment) ? customer.fulfillment : "pickup",
+    preferredTime: String(customer.preferredTime || "").trim().slice(0, 40),
+    notes: String(customer.notes || "").trim().slice(0, 600)
+  };
+}
+
+function sanitizeOrderItem(item = {}) {
+  return {
+    id: String(item.id || "").slice(0, 120),
+    name: String(item.name || "Shawarma Time item").slice(0, 180),
+    price: String(item.price || "").slice(0, 40),
+    priceValue: Number(item.priceValue || 0),
+    quantity: Math.max(1, Math.min(99, Number(item.quantity || 1))),
+    image: String(item.image || "").slice(0, 1000),
+    options: Array.isArray(item.options) ? item.options.slice(0, 12).map((option) => String(option).slice(0, 60)) : []
+  };
 }
 
 function authErrorMessage(error) {

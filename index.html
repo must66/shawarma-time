@@ -31,7 +31,7 @@
         }
       }());
     </script>
-    <link rel="stylesheet" href="src/styles.css?v=20260618-grouped-menu-layout" />
+    <link rel="stylesheet" href="src/styles.css?v=20260623-test-cash-checkout" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -148,9 +148,9 @@
               <fieldset class="payment-methods checkout-payments">
                 <legend id="checkoutPaymentMethodLabel">Betaalmethode</legend>
                 <label id="molliePaymentOption">
-                  <input type="radio" name="paymentMethod" value="mollie" checked />
-                  <span id="checkoutMollieLabel">Online met kaart betalen</span>
-                  <small id="checkoutMollieNote">Creditcard of debitcard via Mollie</small>
+                  <input type="radio" name="paymentMethod" value="cash" checked />
+                  <span id="checkoutMollieLabel">Cash / test checkout</span>
+                  <small id="checkoutMollieNote">Tijdelijk: bestelling direct testen en betalen bij afhalen.</small>
                 </label>
               </fieldset>
               <button class="btn primary checkout-submit" id="submitOrderBtn" type="submit">Bestelling versturen</button>
@@ -301,6 +301,6 @@
       <span data-section-text="footer">Shawarma Time Venlo. Online bestellen, met kaart betalen en snel afhalen.</span>
     </footer>
 
-    <script type="module" src="src/app.js?v=20260618-grouped-menu-layout"></script>
+    <script type="module" src="src/app.js?v=20260623-test-cash-checkout"></script>
   </body>
 </html>
