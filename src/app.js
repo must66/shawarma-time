@@ -632,16 +632,16 @@ function itemCard(item) {
   const description = localized(item.desc, lang) || menuDescriptionPlaceholder();
   return `
     <article class="food-card" data-product-open="${encodeAttr(item.id)}" tabindex="0" role="button" aria-label="${encodeAttr(name)}">
-      <div class="food-image">
+      <div class="food-image food-card-media">
         <img src="${item.image}" alt="${name}" loading="lazy" decoding="async" />
         ${renderBadge(item.badge)}
       </div>
-      <div>
-        <span>${t(`categories.${item.category}`)}</span>
-        <h3>${name}</h3>
-        <p>${description}</p>
+      <div class="food-card-body">
+        <span class="food-category">${t(`categories.${item.category}`)}</span>
+        <h3 class="food-title">${name}</h3>
+        <p class="food-description">${description}</p>
         <div class="food-card-bottom">
-          <strong>${item.price}</strong>
+          <strong class="food-price">${item.price}</strong>
           <button class="btn tiny add-button" type="button" data-add-cart="${encodeAttr(item.id)}" aria-label="${encodeAttr(t("section.addToBasket"))}">+</button>
         </div>
       </div>
