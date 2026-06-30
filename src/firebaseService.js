@@ -170,10 +170,10 @@ export async function findFirebaseOrderByNumber(orderNumber) {
   return { id: doc.id, ...doc.data() };
 }
 
-export async function createFirebaseTestOrder(orderPayload) {
+export async function createFirebaseOrder(orderPayload) {
   const firebase = await getFirebase();
   if (!firebase) throw new Error(CONFIG_ERROR);
-  const orderNumber = formatTestOrderNumber();
+  const orderNumber = formatOrderNumber();
   const order = {
     customer: sanitizeCustomer(orderPayload.customer),
     items: (orderPayload.items || []).map(sanitizeOrderItem),
@@ -185,13 +185,15 @@ export async function createFirebaseTestOrder(orderPayload) {
     status: "new",
     orderStatus: "new",
     orderNumber,
-    source: "test-checkout",
+    source: "web-checkout",
     createdAt: firebase.firestoreMod.serverTimestamp(),
     updatedAt: firebase.firestoreMod.serverTimestamp()
   };
   const docRef = await firebase.firestoreMod.addDoc(firebase.firestoreMod.collection(firebase.db, ORDERS_COLLECTION), order);
   return { id: docRef.id, ...order, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
+
+export const createFirebaseTestOrder = createFirebaseOrder;
 
 export async function subscribeFirebaseOrderByNumber(orderNumber, callback, onError) {
   const firebase = await getFirebase();
@@ -339,7 +341,7 @@ function normalizeStatusForWrite(status) {
   return aliases[status] || status;
 }
 
-function formatTestOrderNumber() {
+function formatOrderNumber() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-5);
   const random = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
   return `ST-${stamp}${random}`;

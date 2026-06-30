@@ -1,6 +1,6 @@
 import { loadSiteData, localized, normalizeCategoryOrder, ui } from "./data.js";
 import { fetchPublicSiteData, subscribeToPublicUpdates } from "./publicApi.js";
-import { createFirebaseTestOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260623-test-cash-checkout";
+import { createFirebaseOrder, subscribeFirebaseOrderByNumber } from "./firebaseService.js?v=20260630-production-rules";
 import { paymentConfig } from "./paymentConfig.js?v=20260617-card-only-orders";
 
 let lang = localStorage.getItem("shawarma-time-lang") || "nl";
@@ -1080,7 +1080,7 @@ async function submitCart(event) {
       customerPhone: orderPayload.customer.phone
     });
     setStatus(t("section.submitOrder"), false);
-    const savedOrder = await createFirebaseTestOrder({
+    const savedOrder = await createFirebaseOrder({
       ...orderPayload,
       subtotal: cartTotal()
     });

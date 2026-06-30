@@ -2,14 +2,26 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnerEmail() {
+      return isSignedIn()
+        && request.auth.token.email in [
+          "admin@shawarma-time.local",
+          "mustafa.chanel@hotmail.com"
+        ];
+    }
+
     function isAdmin() {
-      return request.auth != null
+      return isSignedIn()
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true;
     }
 
-    function isTemporaryTestOrderCreate() {
-      return request.resource.data.keys().hasAll([
+    function isValidPublicOrderCreate() {
+      return request.resource.data.keys().hasOnly([
           "customer",
           "items",
           "itemCount",
@@ -24,7 +36,7 @@ service cloud.firestore {
           "createdAt",
           "updatedAt"
         ])
-        && request.resource.data.source == "test-checkout"
+        && request.resource.data.source == "web-checkout"
         && request.resource.data.paymentMethod == "cash"
         && request.resource.data.paymentStatus == "pending"
         && request.resource.data.status == "new"
@@ -38,10 +50,39 @@ service cloud.firestore {
         && request.resource.data.customer.phone.size() > 0
         && request.resource.data.items is list
         && request.resource.data.items.size() > 0
+        && request.resource.data.items.size() <= 60
         && request.resource.data.itemCount is number
         && request.resource.data.itemCount > 0
+        && request.resource.data.itemCount <= 300
         && request.resource.data.subtotal is number
-        && request.resource.data.subtotal > 0;
+        && request.resource.data.subtotal > 0
+        && request.resource.data.subtotal < 10000;
+    }
+
+    function isValidAdminBootstrap(userId) {
+      return isOwnerEmail()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          "username",
+          "email",
+          "role",
+          "active",
+          "createdAt"
+        ])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.active == true
+        && request.resource.data.role in ["owner", "admin"];
+    }
+
+    function isValidAdminUpdate() {
+      return isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "username",
+          "email",
+          "role",
+          "active",
+          "updatedAt"
+        ]);
     }
 
     match /siteContent/{docId} {
@@ -50,21 +91,22 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow create: if isTemporaryTestOrderCreate();
+      allow create: if isValidPublicOrderCreate();
       allow get: if isAdmin();
       allow list: if isAdmin() || request.query.limit <= 1;
       allow update, delete: if isAdmin();
     }
 
     match /admins/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null
-        && request.auth.uid == userId
-        && request.auth.token.email in [
-          "admin@shawarma-time.local",
-          "mustafa.chanel@hotmail.com"
-        ];
-      allow update, delete: if isAdmin();
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidAdminBootstrap(userId);
+      allow update: if isValidAdminUpdate();
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
